@@ -497,20 +497,38 @@ def criar_orcamento_materiais(dados_gpon):
                     # Aplica 20% de acréscimo para o total de CABO 2FO
                     total_cabo = soma_distancia * 1.20
                     
+                    # Calcula a quantidade de cada material
+                    fecho = total_cabo / 50
+                    supa = total_cabo / 50
+                    alca_branca = total_cabo / 25
+                    arame_espinar = total_cabo / 3500
+                    fita_aco = total_cabo / 1000
+                    plaqueta = 1  # 1 por POP
+                    
                     # Adiciona os dados à lista
                     dados_orcamento.append([
                         subpasta["nome"],  # Nome do POP
-                        round(soma_distancia, 2),  # Distância original (m)
-                        round(total_cabo, 2)  # Total CABO 2FO com 20% (m)
+                        round(total_cabo, 2),  # CABO 2FO Total (m)
+                        round(fecho, 2),      # Fecho
+                        round(supa, 2),       # Supa
+                        round(alca_branca, 2),# Alça Branca
+                        round(arame_espinar, 2), # Arame Espinar
+                        round(fita_aco, 2),   # Fita de Aço
+                        plaqueta             # Plaqueta
                     ])
     
-    # Cria o DataFrame simplificado
+    # Cria o DataFrame completo
     df_orcamento = pd.DataFrame(
         dados_orcamento,
         columns=[
-            "POP", 
-            "Distância Projetada (m)", 
-            "CABO 2FO Total (m)"
+            "POP",
+            "CABO 2FO Total (m)",
+            "Fecho (un)",
+            "Supa (un)", 
+            "Alça Branca (un)",
+            "Arame Espinar (kg)",
+            "Fita de Aço (m)",
+            "Plaqueta (un)"
         ]
     )
     
@@ -521,8 +539,13 @@ def criar_orcamento_materiais(dados_gpon):
     df_orcamento.loc["Total"] = [
         "",
         "Total",
-        df_orcamento["Distância Projetada (m)"].sum(),
-        df_orcamento["CABO 2FO Total (m)"].sum()
+        df_orcamento["CABO 2FO Total (m)"].sum(),
+        df_orcamento["Fecho (un)"].sum(),
+        df_orcamento["Supa (un)"].sum(),
+        df_orcamento["Alça Branca (un)"].sum(),
+        df_orcamento["Arame Espinar (un)"].sum(),
+        df_orcamento["Fita de Aço (un)"].sum(),
+        df_orcamento["Plaqueta (un)"].sum()
     ]
     
     # Define a coluna ID como índice
@@ -736,18 +759,20 @@ if uploaded_file is not None:
     
     criar_tabela_interativa_gpon(dados_gpon)
     
-    # Nova seção de orçamento
-    st.subheader("📊 Orçamento de Materiais para o Projeto")
+    # Na seção de exibição do orçamento:
+    st.subheader("📊 Lista Completa de Materiais por POP")
     
     if dados_gpon:
         df_orcamento = criar_orcamento_materiais(dados_gpon)
         st.dataframe(df_orcamento)
         
         st.markdown("""
-        **📝 Legenda do Orçamento:**
-        - **Cabo Autossustentado 2FO AS80:** Valor calculado com base na metragem total de fibra por POP
-        - **Outros Materiais (20%):** Inclui conectores, caixas de emenda, fixadores e demais materiais complementares
-        - **Valor Total:** Soma do custo do cabo com os outros materiais
-        
-        *Observação: Valores calculados considerando R$ 10,00 por metro de cabo e 20% para outros materiais.*
+        **📝 Fórmulas de Cálculo:**
+        - **CABO 2FO Total:** Distância projetada + 20% margem
+        - **Fecho:** CABO 2FO Total ÷ 50 metros
+        - **Supas:** CABO 2FO Total ÷ 50 metros  
+        - **Alça Branca:** CABO 2FO Total ÷ 25 metros
+        - **Arame Espinar:** CABO 2FO Total ÷ 3.500 metros
+        - **Fita de Aço:** CABO 2FO Total ÷ 1.000 metros
+        - **Plaqueta:** 1 unidade por POP
         """)
