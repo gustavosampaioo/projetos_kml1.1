@@ -598,7 +598,7 @@ def criar_orcamento_materiais(dados_gpon):
     for nome_gpon, dados in dados_gpon.items():
         if "primeiro_nivel" in dados:
             for subpasta in dados["primeiro_nivel"]:
-                # Calcula a soma das distâncias das LineStrings (já existe na estrutura)
+                # Calcula a soma das distâncias das LineStrings
                 soma_distancia = sum(distancia for _, distancia in subpasta["linestrings"])
                 
                 if soma_distancia > 0:  # Só inclui POPs com fibra
@@ -628,16 +628,7 @@ def criar_orcamento_materiais(dados_gpon):
         ]
     )
     
-    
-# Configuração do aplicativo Streamlit
-st.title("Analisador de Projetos de Fibra Ótica")
-st.write("""
-Este aplicativo analisa um arquivo no formato .kml e exibe informações dinâmicas e interativas 
-sobre projetos de fibra ótica, incluindo distâncias, status das rotas, e muito mais.
-""")
-
-
-# Adiciona a coluna ID
+    # Adiciona a coluna ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
     # Adiciona uma linha de total
@@ -659,23 +650,14 @@ sobre projetos de fibra ótica, incluindo distâncias, status das rotas, e muito
     
     return df_orcamento
 
-# Adicione esta chamada na parte principal do código, após processar o KML:
-if 'dados_gpon' in locals() and dados_gpon:
-    st.subheader("Orçamento de Materiais para o Projeto")
-    
-    # Cria e exibe o orçamento
-    df_orcamento = criar_orcamento_materiais(dados_gpon)
-    st.dataframe(df_orcamento)
-    
-    # Adiciona informações explicativas
-    st.markdown("""
-    **Legenda do Orçamento:**
-    - **Cabo Autossustentado 2FO AS80:** Valor calculado com base na metragem total de fibra por POP
-    - **Outros Materiais (20%):** Inclui conectores, caixas de emenda, fixadores e demais materiais complementares
-    - **Valor Total:** Soma do custo do cabo com os outros materiais
-    """)
 
-
+    
+# Configuração do aplicativo Streamlit
+st.title("Analisador de Projetos de Fibra Ótica")
+st.write("""
+Este aplicativo analisa um arquivo no formato .kml e exibe informações dinâmicas e interativas 
+sobre projetos de fibra ótica, incluindo distâncias, status das rotas, e muito mais.
+""")
 
 
 # Upload do arquivo KML
@@ -952,3 +934,30 @@ if uploaded_file is not None:
     
     # Exibe a tabela interativa
     criar_tabela_interativa_gpon(dados_gpon)
+
+    # Exibe o dashboard GPON
+    criar_dashboard_gpon(dados_gpon)
+    
+    # Exibe a tabela interativa
+    criar_tabela_interativa_gpon(dados_gpon)
+    
+    # ============= NOVA SEÇÃO PARA ORÇAMENTO =============
+    st.subheader("📊 Orçamento de Materiais para o Projeto")
+    
+    # Cria e exibe o orçamento
+    if dados_gpon:
+        df_orcamento = criar_orcamento_materiais(dados_gpon)
+        st.dataframe(df_orcamento)
+        
+        # Adiciona informações explicativas
+        st.markdown("""
+        **📝 Legenda do Orçamento:**
+        - **Cabo Autossustentado 2FO AS80:** Valor calculado com base na metragem total de fibra por POP
+        - **Outros Materiais (20%):** Inclui conectores, caixas de emenda, fixadores e demais materiais complementares
+        - **Valor Total:** Soma do custo do cabo com os outros materiais
+        
+        *Observação: Valores calculados considerando R$ 10,00 por metro de cabo e 20% para outros materiais.*
+        """)
+    
+    # ============= FIM DA NOVA SEÇÃO =============
+
