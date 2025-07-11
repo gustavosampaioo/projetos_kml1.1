@@ -503,7 +503,7 @@ def criar_orcamento_materiais(dados_gpon):
                     alca_branca = total_cabo / 25
                     arame_espinar = total_cabo / 3500
                     fita_aco = total_cabo / 1000
-                    plaqueta de identificacao = total_cabo / 120
+                    plaqueta_identificacao = total_cabo / 120  # Corrigido: sem espaços no nome da variável
                     
                     # Adiciona os dados à lista
                     dados_orcamento.append([
@@ -514,7 +514,7 @@ def criar_orcamento_materiais(dados_gpon):
                         round(alca_branca, 2),# Alça Branca
                         round(arame_espinar, 2), # Arame Espinar
                         round(fita_aco, 2),   # Fita de Aço
-                        plaqueta de identificacao             # Plaqueta
+                        round(plaqueta_identificacao, 2)  # Plaqueta de Identificação
                     ])
     
     # Cria o DataFrame completo
@@ -526,8 +526,8 @@ def criar_orcamento_materiais(dados_gpon):
             "Fecho (un)",
             "Supa (un)", 
             "Alça Branca (un)",
-            "Arame Espinar (un)",
-            "Fita de Aço (un)",
+            "Arame Espinar (kg)",  # Alterado para kg (como especificado anteriormente)
+            "Fita de Aço (m)",     # Alterado para metros (como especificado anteriormente)
             "Plaqueta (un)"
         ]
     )
@@ -543,8 +543,8 @@ def criar_orcamento_materiais(dados_gpon):
         df_orcamento["Fecho (un)"].sum(),
         df_orcamento["Supa (un)"].sum(),
         df_orcamento["Alça Branca (un)"].sum(),
-        df_orcamento["Arame Espinar (un)"].sum(),
-        df_orcamento["Fita de Aço (un)"].sum(),
+        df_orcamento["Arame Espinar (kg)"].sum(),
+        df_orcamento["Fita de Aço (m)"].sum(),
         df_orcamento["Plaqueta (un)"].sum()
     ]
     
@@ -774,5 +774,5 @@ if uploaded_file is not None:
         - **Alça Branca:** CABO 2FO Total ÷ 25 metros
         - **Arame Espinar:** CABO 2FO Total ÷ 3.500 metros
         - **Fita de Aço:** CABO 2FO Total ÷ 1.000 metros
-        - **Plaqueta:** 1 unidade por POP
+        - **Plaqueta:** CABO 2FO Total ÷ 120 metros
         """)
