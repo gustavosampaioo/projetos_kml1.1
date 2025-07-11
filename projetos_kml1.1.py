@@ -526,8 +526,8 @@ def criar_orcamento_materiais(dados_gpon):
             "Fecho (un)",
             "Supa (un)", 
             "Alça Branca (un)",
-            "Arame Espinar (kg)",  # Alterado para kg (como especificado anteriormente)
-            "Fita de Aço (m)",     # Alterado para metros (como especificado anteriormente)
+            "Arame Espinar (un)",  # Alterado para kg (como especificado anteriormente)
+            "Fita de Aço (un)",     # Alterado para metros (como especificado anteriormente)
             "Plaqueta (un)"
         ]
     )
@@ -543,8 +543,8 @@ def criar_orcamento_materiais(dados_gpon):
         df_orcamento["Fecho (un)"].sum(),
         df_orcamento["Supa (un)"].sum(),
         df_orcamento["Alça Branca (un)"].sum(),
-        df_orcamento["Arame Espinar (kg)"].sum(),
-        df_orcamento["Fita de Aço (m)"].sum(),
+        df_orcamento["Arame Espinar (un)"].sum(),
+        df_orcamento["Fita de Aço (un)"].sum(),
         df_orcamento["Plaqueta (un)"].sum()
     ]
     
