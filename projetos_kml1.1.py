@@ -584,7 +584,8 @@ if uploaded_file is not None:
         casa_icon = CustomIcon(
             icon_image="https://fontetelecom.com.br/infraestrutura/assets/img/logo/logo-1.png",
             icon_size=(40, 20)
-        
+        )
+            
         folium.Marker(
             location=coords,
             tooltip=nome_cidade,
