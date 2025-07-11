@@ -336,7 +336,8 @@ def criar_dashboard_gpon(dados_gpon):
     st.dataframe(df_tabela)
 
 # Função para criar uma tabela interativa com seleção de primeiro nível
-def criar_tabela_interativa_gpon(dados_gpon):
+def criar_tabela_interativa_gpon(dados_gpon, key_suffix=""):
+    """Adicionamos um parâmetro key_suffix para garantir IDs únicos"""
     # Cria uma lista de opções para o selectbox (primeiro nível)
     opcoes_primeiro_nivel = ["TODAS"]  # Adiciona a opção "TODAS" no início da lista
     for nome_gpon, dados in dados_gpon.items():
@@ -344,8 +345,12 @@ def criar_tabela_interativa_gpon(dados_gpon):
             for subpasta in dados["primeiro_nivel"]:
                 opcoes_primeiro_nivel.append(subpasta["nome"])
     
-    # Adiciona um selectbox para selecionar o primeiro nível
-    selecionado = st.selectbox("Selecione o POP para análise:", opcoes_primeiro_nivel)
+    # Adiciona um selectbox com uma chave única
+    selecionado = st.selectbox(
+        "Selecione o POP para análise:", 
+        opcoes_primeiro_nivel,
+        key=f"select_pop_{key_suffix}"  # Chave única para evitar duplicação
+    )
     
     # Verifica se a opção selecionada é "TODAS"
     if selecionado == "TODAS":
@@ -396,7 +401,7 @@ def criar_tabela_interativa_gpon(dados_gpon):
         
         # Exibe a tabela de Quantidade de Rotas por CTO
         st.write("#### Quantidade de Rotas por projeto")
-        st.dataframe(df_tabela_quantidade_rotas)
+        st.dataframe(df_tabela_quantidade_rotas, key=f"qtd_rotas_{key_suffix}")
         
         # Cria o DataFrame para a tabela de Rotas e CTO's
         df_tabela_rotas = pd.DataFrame(
@@ -416,7 +421,7 @@ def criar_tabela_interativa_gpon(dados_gpon):
         
         # Exibe a tabela de Rotas e CTO's
         st.write("#### Rotas e CTO's")
-        st.dataframe(df_tabela_rotas)
+        st.dataframe(df_tabela_rotas, key=f"rotas_ctos_{key_suffix}")
     
     else:
         # Encontra os dados correspondentes ao primeiro nível selecionado
@@ -467,7 +472,7 @@ def criar_tabela_interativa_gpon(dados_gpon):
                         
                         # Exibe a tabela de Quantidade de Rotas por CTO
                         st.write("#### Quantidade de Rotas por projeto")
-                        st.dataframe(df_tabela_quantidade_rotas)
+                        st.dataframe(df_tabela_quantidade_rotas, key=f"qtd_rotas_{selecionado}_{key_suffix}")
                         
                         # Cria o DataFrame para a tabela de Rotas e CTO's
                         df_tabela_rotas = pd.DataFrame(
@@ -487,7 +492,7 @@ def criar_tabela_interativa_gpon(dados_gpon):
                         
                         # Exibe a tabela de Rotas e CTO's
                         st.write("#### Rotas e CTO's")
-                        st.dataframe(df_tabela_rotas)
+                        st.dataframe(df_tabela_rotas, key=f"rotas_ctos_{selecionado}_{key_suffix}")
 
 #verificar codigo
 def calcular_porcentagem_concluida(dados_por_pasta, dados_concluido):
