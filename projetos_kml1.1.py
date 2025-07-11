@@ -483,54 +483,58 @@ def criar_grafico_pizza_porcentagem_concluida(porcentagens, dados_por_pasta, roo
         st.plotly_chart(fig)
 
 def criar_orcamento_materiais(dados_gpon):
-    CUSTO_CABO_POR_METRO = 10.00
-    PERCENTUAL_ACRESCIMO = 0.20
+    # Define os percentuais de materiais
+    PERCENTUAL_CABO = 1.0  # 100% do comprimento
+    PERCENTUAL_OUTROS = 0.2  # 20% adicionais para outros materiais
     
+    # Inicializa listas para armazenar dados do orçamento
     dados_orcamento = []
     
+    # Itera sobre todas as GPONs e suas subpastas
     for nome_gpon, dados in dados_gpon.items():
         if "primeiro_nivel" in dados:
             for subpasta in dados["primeiro_nivel"]:
+                # Calcula a soma das distâncias das LineStrings
                 soma_distancia = sum(distancia for _, distancia in subpasta["linestrings"])
                 
-                if soma_distancia > 0:
-                    valor_cabo = soma_distancia * CUSTO_CABO_POR_METRO
-                    valor_outros_materiais = valor_cabo * PERCENTUAL_ACRESCIMO
-                    valor_total = valor_cabo + valor_outros_materiais
+                if soma_distancia > 0:  # Só inclui POPs com fibra
+                    # Cálculos das quantidades de materiais
+                    quantidade_cabo = soma_distancia * PERCENTUAL_CABO
+                    quantidade_outros = soma_distancia * PERCENTUAL_OUTROS
+                    quantidade_total = quantidade_cabo + quantidade_outros
                     
+                    # Adiciona os dados à lista (agora apenas quantidades em metros)
                     dados_orcamento.append([
-                        subpasta["nome"],
-                        soma_distancia,
-                        valor_cabo,
-                        valor_outros_materiais,
-                        valor_total
+                        subpasta["nome"],  # Nome do POP
+                        round(quantidade_cabo, 2),  # Cabo principal (metros)
+                        round(quantidade_outros, 2),  # Outros materiais (metros)
+                        round(quantidade_total, 2)  # Total (metros)
                     ])
     
+    # Cria o DataFrame para o orçamento
     df_orcamento = pd.DataFrame(
         dados_orcamento,
         columns=[
             "POP", 
-            "Cabo (metros)", 
-            "Cabo Autossustentado 2FO AS80 (R$)", 
-            "Outros Materiais (20%) (R$)", 
-            "Valor Total (R$)"
+            "Cabo Principal (m)", 
+            "Outros Materiais (20%) (m)", 
+            "Total de Materiais (m)"
         ]
     )
     
+    # Adiciona a coluna ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
+    # Adiciona uma linha de total
     df_orcamento.loc["Total"] = [
         "",
         "Total",
-        df_orcamento["Cabo (metros)"].sum(),
-        df_orcamento["Cabo Autossustentado 2FO AS80 (R$)"].sum(),
-        df_orcamento["Outros Materiais (20%) (R$)"].sum(),
-        df_orcamento["Valor Total (R$)"].sum()
+        df_orcamento["Cabo Principal (m)"].sum(),
+        df_orcamento["Outros Materiais (20%) (m)"].sum(),
+        df_orcamento["Total de Materiais (m)"].sum()
     ]
     
-    for col in ["Cabo Autossustentado 2FO AS80 (R$)", "Outros Materiais (20%) (R$)", "Valor Total (R$)"]:
-        df_orcamento[col] = df_orcamento[col].apply(lambda x: f"R$ {x:,.2f}" if isinstance(x, (int, float)) else x)
-    
+    # Define a coluna ID como índice do DataFrame
     df_orcamento.set_index("ID", inplace=True)
     
     return df_orcamento
