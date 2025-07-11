@@ -628,7 +628,16 @@ def criar_orcamento_materiais(dados_gpon):
         ]
     )
     
-    # Adiciona a coluna ID
+    
+# Configuração do aplicativo Streamlit
+st.title("Analisador de Projetos de Fibra Ótica")
+st.write("""
+Este aplicativo analisa um arquivo no formato .kml e exibe informações dinâmicas e interativas 
+sobre projetos de fibra ótica, incluindo distâncias, status das rotas, e muito mais.
+""")
+
+
+# Adiciona a coluna ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
     # Adiciona uma linha de total
@@ -666,12 +675,8 @@ if 'dados_gpon' in locals() and dados_gpon:
     - **Valor Total:** Soma do custo do cabo com os outros materiais
     """)
 
-# Configuração do aplicativo Streamlit
-st.title("Analisador de Projetos de Fibra Ótica")
-st.write("""
-Este aplicativo analisa um arquivo no formato .kml e exibe informações dinâmicas e interativas 
-sobre projetos de fibra ótica, incluindo distâncias, status das rotas, e muito mais.
-""")
+
+
 
 # Upload do arquivo KML
 uploaded_file = st.file_uploader("Carregue um arquivo KML", type=["kml"])
