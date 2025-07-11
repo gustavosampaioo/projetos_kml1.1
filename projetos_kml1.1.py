@@ -503,7 +503,7 @@ def criar_orcamento_materiais(dados_gpon):
                     alca_branca = total_cabo / 25
                     arame_espinar = total_cabo / 3500
                     fita_aco = total_cabo / 1000
-                    plaqueta = 1  # 1 por POP
+                    plaqueta de identificacao = total_cabo / 120
                     
                     # Adiciona os dados à lista
                     dados_orcamento.append([
@@ -514,7 +514,7 @@ def criar_orcamento_materiais(dados_gpon):
                         round(alca_branca, 2),# Alça Branca
                         round(arame_espinar, 2), # Arame Espinar
                         round(fita_aco, 2),   # Fita de Aço
-                        plaqueta             # Plaqueta
+                        plaqueta de identificacao             # Plaqueta
                     ])
     
     # Cria o DataFrame completo
@@ -526,8 +526,8 @@ def criar_orcamento_materiais(dados_gpon):
             "Fecho (un)",
             "Supa (un)", 
             "Alça Branca (un)",
-            "Arame Espinar (kg)",
-            "Fita de Aço (m)",
+            "Arame Espinar (un)",
+            "Fita de Aço (un)",
             "Plaqueta (un)"
         ]
     )
@@ -543,8 +543,8 @@ def criar_orcamento_materiais(dados_gpon):
         df_orcamento["Fecho (un)"].sum(),
         df_orcamento["Supa (un)"].sum(),
         df_orcamento["Alça Branca (un)"].sum(),
-        df_orcamento["Arame Espinar (kg)"].sum(),
-        df_orcamento["Fita de Aço (m)"].sum(),
+        df_orcamento["Arame Espinar (un)"].sum(),
+        df_orcamento["Fita de Aço (un)"].sum(),
         df_orcamento["Plaqueta (un)"].sum()
     ]
     
