@@ -586,6 +586,86 @@ def criar_grafico_pizza_porcentagem_concluida(porcentagens, dados_por_pasta, roo
         # Exibe o gráfico no Streamlit
         st.plotly_chart(fig)
 
+def criar_orcamento_materiais(dados_gpon):
+    # Dados de custo (valores fictícios - substitua por valores reais)
+    CUSTO_CABO_POR_METRO = 10.00  # R$10,00 por metro de cabo autossustentado 2FO AS80
+    PERCENTUAL_ACRESCIMO = 0.20  # 20% de acréscimo para outros materiais
+    
+    # Inicializa listas para armazenar dados do orçamento
+    dados_orcamento = []
+    
+    # Itera sobre todas as GPONs e suas subpastas
+    for nome_gpon, dados in dados_gpon.items():
+        if "primeiro_nivel" in dados:
+            for subpasta in dados["primeiro_nivel"]:
+                # Calcula a soma das distâncias das LineStrings (já existe na estrutura)
+                soma_distancia = sum(distancia for _, distancia in subpasta["linestrings"])
+                
+                if soma_distancia > 0:  # Só inclui POPs com fibra
+                    # Cálculos do orçamento
+                    valor_cabo = soma_distancia * CUSTO_CABO_POR_METRO
+                    valor_outros_materiais = valor_cabo * PERCENTUAL_ACRESCIMO
+                    valor_total = valor_cabo + valor_outros_materiais
+                    
+                    # Adiciona os dados à lista
+                    dados_orcamento.append([
+                        subpasta["nome"],  # Nome do POP
+                        soma_distancia,    # Metros de cabo
+                        valor_cabo,
+                        valor_outros_materiais,
+                        valor_total
+                    ])
+    
+    # Cria o DataFrame para o orçamento
+    df_orcamento = pd.DataFrame(
+        dados_orcamento,
+        columns=[
+            "POP", 
+            "Cabo (metros)", 
+            "Cabo Autossustentado 2FO AS80 (R$)", 
+            "Outros Materiais (20%) (R$)", 
+            "Valor Total (R$)"
+        ]
+    )
+    
+    # Adiciona a coluna ID
+    df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
+    
+    # Adiciona uma linha de total
+    df_orcamento.loc["Total"] = [
+        "",
+        "Total",
+        df_orcamento["Cabo (metros)"].sum(),
+        df_orcamento["Cabo Autossustentado 2FO AS80 (R$)"].sum(),
+        df_orcamento["Outros Materiais (20%) (R$)"].sum(),
+        df_orcamento["Valor Total (R$)"].sum()
+    ]
+    
+    # Formata os valores monetários
+    for col in ["Cabo Autossustentado 2FO AS80 (R$)", "Outros Materiais (20%) (R$)", "Valor Total (R$)"]:
+        df_orcamento[col] = df_orcamento[col].apply(lambda x: f"R$ {x:,.2f}" if isinstance(x, (int, float)) else x)
+    
+    # Define a coluna ID como índice do DataFrame
+    df_orcamento.set_index("ID", inplace=True)
+    
+    return df_orcamento
+
+# Adicione esta chamada na parte principal do código, após processar o KML:
+if 'dados_gpon' in locals() and dados_gpon:
+    st.subheader("Orçamento de Materiais para o Projeto")
+    
+    # Cria e exibe o orçamento
+    df_orcamento = criar_orcamento_materiais(dados_gpon)
+    st.dataframe(df_orcamento)
+    
+    # Adiciona informações explicativas
+    st.markdown("""
+    **Legenda do Orçamento:**
+    - **Cabo Autossustentado 2FO AS80:** Valor calculado com base na metragem total de fibra por POP
+    - **Outros Materiais (20%):** Inclui conectores, caixas de emenda, fixadores e demais materiais complementares
+    - **Valor Total:** Soma do custo do cabo com os outros materiais
+    """)
+
 # Configuração do aplicativo Streamlit
 st.title("Analisador de Projetos de Fibra Ótica")
 st.write("""
