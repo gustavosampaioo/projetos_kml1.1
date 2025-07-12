@@ -593,6 +593,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                     # Processa cada CTO no POP
                     for cto in subpasta["ctos"]:
                         if "rotas" in cto:
+                            # Conta o total de CTO's (placemarks) em todas as rotas
                             total_ctos += sum(rota["quantidade_placemarks"] for rota in cto["rotas"])
                             
                             # Processa cada rota na CTO
@@ -606,19 +607,20 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                                 # Determina o tipo de splitter baseado na sequência da rota
                                 if sequencia in mapeamento_splitter:
                                     splitter_type = mapeamento_splitter[sequencia]
+                                    # Adiciona 1 splitter para cada rota, independente da quantidade de placemarks
                                     splitters[splitter_type] += 1
                     
                     # Adiciona os dados à lista
                     dados_tabela.append([
                         subpasta["nome"],  # Nome do POP
-                        total_ctos,        # Total de CTOs
-                        splitters["5/95"],  # Splitters 5/95
-                        splitters["10/90"], # Splitters 10/90
-                        splitters["15/85"], # Splitters 15/85
-                        splitters["20/80"], # Splitters 20/80
-                        splitters["30/70"], # Splitters 30/70
-                        splitters["40/60"], # Splitters 40/60
-                        splitters["50/50"]  # Splitters 50/50
+                        total_ctos,        # Total de CTOs (soma de todos placemarks)
+                        splitters["5/95"],  # Splitters 5/95 (quantidade de rotas nas posições 1-4)
+                        splitters["10/90"], # Splitters 10/90 (quantidade de rotas nas posições 5-8)
+                        splitters["15/85"], # Splitters 15/85 (quantidade de rotas na posição 9)
+                        splitters["20/80"], # Splitters 20/80 (quantidade de rotas na posição 10)
+                        splitters["30/70"], # Splitters 30/70 (quantidade de rotas na posição 11)
+                        splitters["40/60"], # Splitters 40/60 (quantidade de rotas na posição 12)
+                        splitters["50/50"]  # Splitters 50/50 (quantidade de rotas na posição 13)
                     ])
     
     # Cria o DataFrame completo
