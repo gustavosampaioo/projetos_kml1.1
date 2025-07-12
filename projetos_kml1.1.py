@@ -503,7 +503,7 @@ def criar_orcamento_materiais(dados_gpon):
                     alca_branca = total_cabo / 25
                     arame_espinar = total_cabo / 3500
                     fita_aco = total_cabo / 1000
-                    plaqueta_identificacao = total_cabo / 120  # Corrigido: sem espaços no nome da variável
+                    plaqueta_identificacao = total_cabo / 120  
                     
                     # Adiciona os dados à lista
                     dados_orcamento.append([
@@ -526,8 +526,8 @@ def criar_orcamento_materiais(dados_gpon):
             "Fecho (un)",
             "Supa (un)", 
             "Alça Branca (un)",
-            "Arame Espinar (un)",  # Alterado para kg (como especificado anteriormente)
-            "Fita de Aço (un)",     # Alterado para metros (como especificado anteriormente)
+            "Arame Espinar (un)", 
+            "Fita de Aço (un)",   
             "Plaqueta (un)"
         ]
     )
@@ -552,6 +552,110 @@ def criar_orcamento_materiais(dados_gpon):
     df_orcamento.set_index("ID", inplace=True)
     
     return df_orcamento
+
+def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
+    # Dicionário de mapeamento de CTO para tipo de Splitter
+    mapeamento_splitter = {
+        1: "5/95",
+        2: "5/95",
+        3: "5/95",
+        4: "5/95",
+        5: "10/90",
+        6: "10/90",
+        7: "10/90",
+        8: "10/90",
+        9: "15/85",
+        10: "20/80",
+        11: "30/70",
+        12: "40/60",
+        13: "50/50"
+    }
+    
+    # Inicializa listas para armazenar dados
+    dados_tabela = []
+    
+    # Itera sobre todas as GPONs e suas subpastas
+    for nome_gpon, dados in dados_gpon.items():
+        if "primeiro_nivel" in dados:
+            for subpasta in dados["primeiro_nivel"]:
+                if "ctos" in subpasta and subpasta["ctos"]:
+                    total_ctos = 0
+                    splitters = {
+                        "5/95": 0,
+                        "10/90": 0,
+                        "15/85": 0,
+                        "20/80": 0,
+                        "30/70": 0,
+                        "40/60": 0,
+                        "50/50": 0
+                    }
+                    
+                    # Processa cada CTO no POP
+                    for cto in subpasta["ctos"]:
+                        if "rotas" in cto:
+                            # Extrai o número da CTO do nome (assumindo formato "CTO XX" ou similar)
+                            try:
+                                numero_cto = int(''.join(filter(str.isdigit, cto["nome"])))
+                            except:
+                                numero_cto = 0  # Padrão para CTOs sem número identificável
+                            
+                            total_ctos += 1
+                            
+                            # Determina o tipo de splitter baseado no número da CTO
+                            if numero_cto in mapeamento_splitter:
+                                splitter_type = mapeamento_splitter[numero_cto]
+                                splitters[splitter_type] += 1
+                    
+                    # Adiciona os dados à lista
+                    dados_tabela.append([
+                        subpasta["nome"],  # Nome do POP
+                        total_ctos,        # Total de CTOs
+                        splitters["5/95"],  # Splitters 5/95
+                        splitters["10/90"], # Splitters 10/90
+                        splitters["15/85"], # Splitters 15/85
+                        splitters["20/80"], # Splitters 20/80
+                        splitters["30/70"], # Splitters 30/70
+                        splitters["40/60"], # Splitters 40/60
+                        splitters["50/50"]  # Splitters 50/50
+                    ])
+    
+    # Cria o DataFrame completo
+    df_quantitativo = pd.DataFrame(
+        dados_tabela,
+        columns=[
+            "POP",
+            "Total CTO's",
+            "Splitter 5/95",
+            "Splitter 10/90", 
+            "Splitter 15/85",
+            "Splitter 20/80", 
+            "Splitter 30/70",   
+            "Splitter 40/60",
+            "Splitter 50/50"
+        ]
+    )
+    
+    # Adiciona a coluna ID
+    df_quantitativo.insert(0, "ID", range(1, len(df_quantitativo) + 1))
+    
+    # Adiciona uma linha de total
+    df_quantitativo.loc["Total"] = [
+        "",
+        "Total",
+        df_quantitativo["Total CTO's"].sum(),
+        df_quantitativo["Splitter 5/95"].sum(),
+        df_quantitativo["Splitter 10/90"].sum(),
+        df_quantitativo["Splitter 15/85"].sum(),
+        df_quantitativo["Splitter 20/80"].sum(),
+        df_quantitativo["Splitter 30/70"].sum(),
+        df_quantitativo["Splitter 40/60"].sum(),
+        df_quantitativo["Splitter 50/50"].sum()
+    ]
+    
+    # Define a coluna ID como índice
+    df_quantitativo.set_index("ID", inplace=True)
+    
+    return df_quantitativo
 
 # Configuração do aplicativo Streamlit
 st.title("Analisador de Projetos de Fibra Ótica")
@@ -770,9 +874,27 @@ if uploaded_file is not None:
         **📝 Fórmulas de Cálculo:**
         - **CABO 2FO Total:** Distância projetada + 20% margem
         - **Fecho:** CABO 2FO Total ÷ 50 metros
-        - **Supas:** CABO 2FO Total ÷ 50 metros  
+        - **Supa:** CABO 2FO Total ÷ 50 metros  
         - **Alça Branca:** CABO 2FO Total ÷ 25 metros
         - **Arame Espinar:** CABO 2FO Total ÷ 3.500 metros
         - **Fita de Aço:** CABO 2FO Total ÷ 1.000 metros
         - **Plaqueta:** CABO 2FO Total ÷ 120 metros
         """)
+
+# Adicione esta chamada na seção principal do seu código, após processar os dados GPON
+if dados_gpon:
+    st.subheader("📊 Quantitativo de CTO's e Splitters por POP")
+    df_quantitativo = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
+    st.dataframe(df_quantitativo)
+    
+    st.markdown("""
+    **📝 Regras de Distribuição de Splitters:**
+    - **CTO 1 a 4:** Splitter 5/95
+    - **CTO 5 a 8:** Splitter 10/90  
+    - **CTO 9:** Splitter 15/85
+    - **CTO 10:** Splitter 20/80
+    - **CTO 11:** Splitter 30/70
+    - **CTO 12:** Splitter 40/60
+    - **CTO 13:** Splitter 50/50
+    """)
+
