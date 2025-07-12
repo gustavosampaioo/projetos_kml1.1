@@ -554,7 +554,7 @@ def criar_orcamento_materiais(dados_gpon):
     return df_orcamento
 
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
-    # Dicionário de mapeamento de CTO para tipo de Splitter
+    # Dicionário de mapeamento de posição na rota para tipo de Splitter
     mapeamento_splitter = {
         1: "5/95",
         2: "5/95",
@@ -593,18 +593,20 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                     # Processa cada CTO no POP
                     for cto in subpasta["ctos"]:
                         if "rotas" in cto:
-                            # Extrai o número da CTO do nome (assumindo formato "CTO XX" ou similar)
-                            try:
-                                numero_cto = int(''.join(filter(str.isdigit, cto["nome"])))
-                            except:
-                                numero_cto = 0  # Padrão para CTOs sem número identificável
+                            total_ctos += sum(rota["quantidade_placemarks"] for rota in cto["rotas"])
                             
-                            total_ctos += 1
-                            
-                            # Determina o tipo de splitter baseado no número da CTO
-                            if numero_cto in mapeamento_splitter:
-                                splitter_type = mapeamento_splitter[numero_cto]
-                                splitters[splitter_type] += 1
+                            # Processa cada rota na CTO
+                            for rota in cto["rotas"]:
+                                # Extrai o número da sequência da rota (assumindo formato "Rota XX" ou similar)
+                                try:
+                                    sequencia = int(''.join(filter(str.isdigit, rota["nome_rota"])))
+                                except:
+                                    sequencia = 0  # Padrão para rotas sem número identificável
+                                
+                                # Determina o tipo de splitter baseado na sequência da rota
+                                if sequencia in mapeamento_splitter:
+                                    splitter_type = mapeamento_splitter[sequencia]
+                                    splitters[splitter_type] += 1
                     
                     # Adiciona os dados à lista
                     dados_tabela.append([
