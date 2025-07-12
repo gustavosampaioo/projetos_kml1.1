@@ -554,10 +554,10 @@ def criar_orcamento_materiais(dados_gpon):
     return df_orcamento
 
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
-    # Dicionário de mapeamento de posição na rota para tipo de Splitter
-    mapeamento_splitter = {
+    # Dicionário de mapeamento de sequência para tipo de Splitter
+    SEQUENCIA_SPLITTER = {
         1: "5/95",
-        2: "5/95",
+        2: "5/95", 
         3: "5/95",
         4: "5/95",
         5: "10/90",
@@ -571,14 +571,12 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
         13: "50/50"
     }
     
-    # Inicializa listas para armazenar dados
     dados_tabela = []
     
-    # Itera sobre todas as GPONs e suas subpastas
     for nome_gpon, dados in dados_gpon.items():
         if "primeiro_nivel" in dados:
-            for subpasta in dados["primeiro_nivel"]:
-                if "ctos" in subpasta and subpasta["ctos"]:
+            for pop in dados["primeiro_nivel"]:
+                if "ctos" in pop and pop["ctos"]:
                     total_ctos = 0
                     splitters = {
                         "5/95": 0,
@@ -591,75 +589,72 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                     }
                     
                     # Processa cada CTO no POP
-                    for cto in subpasta["ctos"]:
+                    for cto in pop["ctos"]:
                         if "rotas" in cto:
-                            # Conta o total de CTO's (placemarks) em todas as rotas
-                            total_ctos += sum(rota["quantidade_placemarks"] for rota in cto["rotas"])
-                            
-                            # Processa cada rota na CTO
+                            # Contabiliza CTOs (placemarks) por rota
                             for rota in cto["rotas"]:
-                                # Extrai o número da sequência da rota (assumindo formato "Rota XX" ou similar)
-                                try:
-                                    sequencia = int(''.join(filter(str.isdigit, rota["nome_rota"])))
-                                except:
-                                    sequencia = 0  # Padrão para rotas sem número identificável
+                                total_ctos += rota["quantidade_placemarks"]
                                 
-                                # Determina o tipo de splitter baseado na sequência da rota
-                                if sequencia in mapeamento_splitter:
-                                    splitter_type = mapeamento_splitter[sequencia]
-                                    # Adiciona 1 splitter para cada rota, independente da quantidade de placemarks
+                                # Extrai número da sequência da rota
+                                try:
+                                    seq_num = int(''.join(filter(str.isdigit, rota["nome_rota"])))
+                                except:
+                                    seq_num = 0
+                                
+                                # Determina o splitter baseado na sequência
+                                if seq_num in SEQUENCIA_SPLITTER:
+                                    splitter_type = SEQUENCIA_SPLITTER[seq_num]
+                                    # Adiciona 1 splitter para cada rota (não por placemark)
                                     splitters[splitter_type] += 1
                     
-                    # Adiciona os dados à lista
+                    # Adiciona ao dataframe
                     dados_tabela.append([
-                        subpasta["nome"],  # Nome do POP
-                        total_ctos,        # Total de CTOs (soma de todos placemarks)
-                        splitters["5/95"],  # Splitters 5/95 (quantidade de rotas nas posições 1-4)
-                        splitters["10/90"], # Splitters 10/90 (quantidade de rotas nas posições 5-8)
-                        splitters["15/85"], # Splitters 15/85 (quantidade de rotas na posição 9)
-                        splitters["20/80"], # Splitters 20/80 (quantidade de rotas na posição 10)
-                        splitters["30/70"], # Splitters 30/70 (quantidade de rotas na posição 11)
-                        splitters["40/60"], # Splitters 40/60 (quantidade de rotas na posição 12)
-                        splitters["50/50"]  # Splitters 50/50 (quantidade de rotas na posição 13)
+                        pop["nome"],
+                        total_ctos,
+                        splitters["5/95"],
+                        splitters["10/90"],
+                        splitters["15/85"],
+                        splitters["20/80"],
+                        splitters["30/70"],
+                        splitters["40/60"],
+                        splitters["50/50"]
                     ])
     
-    # Cria o DataFrame completo
-    df_quantitativo = pd.DataFrame(
+    # Cria DataFrame
+    df = pd.DataFrame(
         dados_tabela,
         columns=[
             "POP",
             "Total CTO's",
             "Splitter 5/95",
-            "Splitter 10/90", 
+            "Splitter 10/90",
             "Splitter 15/85",
-            "Splitter 20/80", 
-            "Splitter 30/70",   
+            "Splitter 20/80",
+            "Splitter 30/70",
             "Splitter 40/60",
             "Splitter 50/50"
         ]
     )
     
-    # Adiciona a coluna ID
-    df_quantitativo.insert(0, "ID", range(1, len(df_quantitativo) + 1))
+    # Formatação final
+    df.insert(0, "ID", range(1, len(df) + 1))
     
-    # Adiciona uma linha de total
-    df_quantitativo.loc["Total"] = [
+    # Totais
+    df.loc["Total"] = [
         "",
-        "Total",
-        df_quantitativo["Total CTO's"].sum(),
-        df_quantitativo["Splitter 5/95"].sum(),
-        df_quantitativo["Splitter 10/90"].sum(),
-        df_quantitativo["Splitter 15/85"].sum(),
-        df_quantitativo["Splitter 20/80"].sum(),
-        df_quantitativo["Splitter 30/70"].sum(),
-        df_quantitativo["Splitter 40/60"].sum(),
-        df_quantitativo["Splitter 50/50"].sum()
+        df["Total CTO's"].sum(),
+        df["Splitter 5/95"].sum(),
+        df["Splitter 10/90"].sum(),
+        df["Splitter 15/85"].sum(),
+        df["Splitter 20/80"].sum(),
+        df["Splitter 30/70"].sum(),
+        df["Splitter 40/60"].sum(),
+        df["Splitter 50/50"].sum()
     ]
     
-    # Define a coluna ID como índice
-    df_quantitativo.set_index("ID", inplace=True)
+    df.set_index("ID", inplace=True)
     
-    return df_quantitativo
+    return df
 
 # Configuração do aplicativo Streamlit
 st.title("Analisador de Projetos de Fibra Ótica")
