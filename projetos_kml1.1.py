@@ -578,10 +578,10 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
             for pop in dados["primeiro_nivel"]:
                 if "ctos" in pop and pop["ctos"]:
                     total_ctos = 0
-                    contador_sequencia = 1  # Inicia a contagem da sequência
+                    contador_sequencia = 1  # Contador global para a sequência
                     splitters = {
-                        "5/95": 0,
-                        "10/90": 0,
+                        "5/95": 0,  # Quantidade de CTOs com splitter 5/95
+                        "10/90": 0,  # Quantidade de CTOs com splitter 10/90
                         "15/85": 0,
                         "20/80": 0,
                         "30/70": 0,
@@ -600,7 +600,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                                 # Determina o tipo de splitter baseado na sequência atual
                                 if contador_sequencia in SEQUENCIA_SPLITTER:
                                     splitter_type = SEQUENCIA_SPLITTER[contador_sequencia]
-                                    splitters[splitter_type] += 1
+                                    splitters[splitter_type] += qtd_ctos
                                 
                                 # Incrementa o contador de sequência
                                 contador_sequencia += 1
@@ -624,13 +624,13 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
         columns=[
             "POP",
             "Total CTO's",
-            "Splitter 5/95 (Rotas)",
-            "Splitter 10/90 (Rotas)", 
-            "Splitter 15/85 (Rotas)",
-            "Splitter 20/80 (Rotas)", 
-            "Splitter 30/70 (Rotas)",   
-            "Splitter 40/60 (Rotas)",
-            "Splitter 50/50 (Rotas)"
+            "CTOs com Splitter 5/95",
+            "CTOs com Splitter 10/90", 
+            "CTOs com Splitter 15/85",
+            "CTOs com Splitter 20/80", 
+            "CTOs com Splitter 30/70",   
+            "CTOs com Splitter 40/60",
+            "CTOs com Splitter 50/50"
         ]
     )
     
@@ -642,13 +642,13 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
         "",
         "Total",
         df_quantitativo["Total CTO's"].sum(),
-        df_quantitativo["Splitter 5/95 (Rotas)"].sum(),
-        df_quantitativo["Splitter 10/90 (Rotas)"].sum(),
-        df_quantitativo["Splitter 15/85 (Rotas)"].sum(),
-        df_quantitativo["Splitter 20/80 (Rotas)"].sum(),
-        df_quantitativo["Splitter 30/70 (Rotas)"].sum(),
-        df_quantitativo["Splitter 40/60 (Rotas)"].sum(),
-        df_quantitativo["Splitter 50/50 (Rotas)"].sum()
+        df_quantitativo["CTOs com Splitter 5/95"].sum(),
+        df_quantitativo["CTOs com Splitter 10/90"].sum(),
+        df_quantitativo["CTOs com Splitter 15/85"].sum(),
+        df_quantitativo["CTOs com Splitter 20/80"].sum(),
+        df_quantitativo["CTOs com Splitter 30/70"].sum(),
+        df_quantitativo["CTOs com Splitter 40/60"].sum(),
+        df_quantitativo["CTOs com Splitter 50/50"].sum()
     ]
     
     # Define a coluna ID como índice
@@ -882,7 +882,7 @@ if uploaded_file is not None:
 
     # Na seção principal do dashboard:
     if dados_gpon:
-        st.subheader("📊 Quantitativo de CTO's e Splitters por POP")
+        st.subheader("📊 Quantitativo de CTO's e Distribuição de Splitters")
         
         df_splitters = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
         st.dataframe(df_splitters)
@@ -890,13 +890,13 @@ if uploaded_file is not None:
         st.markdown("""
         **📝 Regras de Distribuição:**
         - **Total CTO's:** Soma de todos placemarks em todas as rotas
-        - **Splitters:** Contagem de rotas por tipo, seguindo a sequência:
-          - Rotas 1-4: Splitter 5/95
-          - Rotas 5-8: Splitter 10/90  
-          - Rota 9: Splitter 15/85
-          - Rota 10: Splitter 20/80
-          - Rota 11: Splitter 30/70
-          - Rota 12: Splitter 40/60
-          - Rota 13: Splitter 50/50
+        - **Distribuição de Splitters:**
+          - Sequência 1-4: CTOs usam Splitter 5/95
+          - Sequência 5-8: CTOs usam Splitter 10/90  
+          - Sequência 9: CTOs usam Splitter 15/85
+          - Sequência 10: CTOs usam Splitter 20/80
+          - Sequência 11: CTOs usam Splitter 30/70
+          - Sequência 12: CTOs usam Splitter 40/60
+          - Sequência 13: CTOs usam Splitter 50/50
         - **Observação:** A sequência é contada globalmente para todas as rotas do POP
         """)
