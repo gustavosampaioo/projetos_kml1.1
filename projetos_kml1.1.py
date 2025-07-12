@@ -557,7 +557,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
     # Dicionário de mapeamento de sequência para tipo de Splitter
     SEQUENCIA_SPLITTER = {
         1: "5/95",
-        2: "5/95", 
+        2: "5/95",
         3: "5/95",
         4: "5/95",
         5: "10/90",
@@ -578,113 +578,83 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
             for pop in dados["primeiro_nivel"]:
                 if "ctos" in pop and pop["ctos"]:
                     total_ctos = 0
-                    total_rotas = 0
+                    contador_sequencia = 1  # Inicia a contagem da sequência
                     splitters = {
-                        "5/95": {"rotas": 0, "ctos": 0},
-                        "10/90": {"rotas": 0, "ctos": 0},
-                        "15/85": {"rotas": 0, "ctos": 0},
-                        "20/80": {"rotas": 0, "ctos": 0},
-                        "30/70": {"rotas": 0, "ctos": 0},
-                        "40/60": {"rotas": 0, "ctos": 0},
-                        "50/50": {"rotas": 0, "ctos": 0}
+                        "5/95": 0,
+                        "10/90": 0,
+                        "15/85": 0,
+                        "20/80": 0,
+                        "30/70": 0,
+                        "40/60": 0,
+                        "50/50": 0
                     }
                     
                     # Processa cada CTO no POP
                     for cto in pop["ctos"]:
                         if "rotas" in cto:
                             # Processa cada rota na CTO
-                            for i, rota in enumerate(cto["rotas"], start=1):
-                                total_rotas += 1
+                            for rota in cto["rotas"]:
                                 qtd_ctos = rota["quantidade_placemarks"]
                                 total_ctos += qtd_ctos
                                 
-                                # Determina a sequência
-                                try:
-                                    seq_num = int(''.join(filter(str.isdigit, rota["nome_rota"])))
-                                except:
-                                    seq_num = i  # Usa o índice como fallback
+                                # Determina o tipo de splitter baseado na sequência atual
+                                if contador_sequencia in SEQUENCIA_SPLITTER:
+                                    splitter_type = SEQUENCIA_SPLITTER[contador_sequencia]
+                                    splitters[splitter_type] += 1
                                 
-                                # Determina o splitter baseado na sequência
-                                if seq_num in SEQUENCIA_SPLITTER:
-                                    splitter_type = SEQUENCIA_SPLITTER[seq_num]
-                                    splitters[splitter_type]["rotas"] += 1
-                                    splitters[splitter_type]["ctos"] += qtd_ctos
+                                # Incrementa o contador de sequência
+                                contador_sequencia += 1
                     
-                    # Adiciona ao dataframe
+                    # Adiciona os dados à lista
                     dados_tabela.append([
                         pop["nome"],
                         total_ctos,
-                        total_rotas,
-                        splitters["5/95"]["rotas"],
-                        splitters["5/95"]["ctos"],
-                        splitters["10/90"]["rotas"],
-                        splitters["10/90"]["ctos"],
-                        splitters["15/85"]["rotas"],
-                        splitters["15/85"]["ctos"],
-                        splitters["20/80"]["rotas"],
-                        splitters["20/80"]["ctos"],
-                        splitters["30/70"]["rotas"],
-                        splitters["30/70"]["ctos"],
-                        splitters["40/60"]["rotas"],
-                        splitters["40/60"]["ctos"],
-                        splitters["50/50"]["rotas"],
-                        splitters["50/50"]["ctos"]
+                        splitters["5/95"],
+                        splitters["10/90"],
+                        splitters["15/85"],
+                        splitters["20/80"],
+                        splitters["30/70"],
+                        splitters["40/60"],
+                        splitters["50/50"]
                     ])
     
-    # Cria DataFrame
-    df = pd.DataFrame(
+    # Cria o DataFrame completo
+    df_quantitativo = pd.DataFrame(
         dados_tabela,
         columns=[
             "POP",
             "Total CTO's",
-            "Total Rotas",
-            "Rotas 5/95",
-            "CTOs 5/95",
-            "Rotas 10/90",
-            "CTOs 10/90",
-            "Rotas 15/85",
-            "CTOs 15/85",
-            "Rotas 20/80",
-            "CTOs 20/80",
-            "Rotas 30/70",
-            "CTOs 30/70",
-            "Rotas 40/60",
-            "CTOs 40/60",
-            "Rotas 50/50",
-            "CTOs 50/50"
+            "Splitter 5/95 (Rotas)",
+            "Splitter 10/90 (Rotas)", 
+            "Splitter 15/85 (Rotas)",
+            "Splitter 20/80 (Rotas)", 
+            "Splitter 30/70 (Rotas)",   
+            "Splitter 40/60 (Rotas)",
+            "Splitter 50/50 (Rotas)"
         ]
     )
     
-    # Formatação final
-    df.insert(0, "ID", range(1, len(df) + 1))
+    # Adiciona a coluna ID
+    df_quantitativo.insert(0, "ID", range(1, len(df_quantitativo) + 1))
     
-    # Calcula totais
-    totais = {
-        "POP": "Total",
-        "Total CTO's": df["Total CTO's"].sum(),
-        "Total Rotas": df["Total Rotas"].sum(),
-        "Rotas 5/95": df["Rotas 5/95"].sum(),
-        "CTOs 5/95": df["CTOs 5/95"].sum(),
-        "Rotas 10/90": df["Rotas 10/90"].sum(),
-        "CTOs 10/90": df["CTOs 10/90"].sum(),
-        "Rotas 15/85": df["Rotas 15/85"].sum(),
-        "CTOs 15/85": df["CTOs 15/85"].sum(),
-        "Rotas 20/80": df["Rotas 20/80"].sum(),
-        "CTOs 20/80": df["CTOs 20/80"].sum(),
-        "Rotas 30/70": df["Rotas 30/70"].sum(),
-        "CTOs 30/70": df["CTOs 30/70"].sum(),
-        "Rotas 40/60": df["Rotas 40/60"].sum(),
-        "CTOs 40/60": df["CTOs 40/60"].sum(),
-        "Rotas 50/50": df["Rotas 50/50"].sum(),
-        "CTOs 50/50": df["CTOs 50/50"].sum()
-    }
+    # Adiciona uma linha de total
+    df_quantitativo.loc["Total"] = [
+        "",
+        "Total",
+        df_quantitativo["Total CTO's"].sum(),
+        df_quantitativo["Splitter 5/95 (Rotas)"].sum(),
+        df_quantitativo["Splitter 10/90 (Rotas)"].sum(),
+        df_quantitativo["Splitter 15/85 (Rotas)"].sum(),
+        df_quantitativo["Splitter 20/80 (Rotas)"].sum(),
+        df_quantitativo["Splitter 30/70 (Rotas)"].sum(),
+        df_quantitativo["Splitter 40/60 (Rotas)"].sum(),
+        df_quantitativo["Splitter 50/50 (Rotas)"].sum()
+    ]
     
-    # Adiciona linha de totais
-    df.loc["Total"] = totais
+    # Define a coluna ID como índice
+    df_quantitativo.set_index("ID", inplace=True)
     
-    df.set_index("ID", inplace=True)
-    
-    return df
+    return df_quantitativo
 
 # Configuração do aplicativo Streamlit
 st.title("Analisador de Projetos de Fibra Ótica")
@@ -912,7 +882,7 @@ if uploaded_file is not None:
 
     # Na seção principal do dashboard:
     if dados_gpon:
-        st.subheader("📊 Quantitativo Detalhado de CTO's e Splitters por POP")
+        st.subheader("📊 Quantitativo de CTO's e Splitters por POP")
         
         df_splitters = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
         st.dataframe(df_splitters)
@@ -920,8 +890,7 @@ if uploaded_file is not None:
         st.markdown("""
         **📝 Regras de Distribuição:**
         - **Total CTO's:** Soma de todos placemarks em todas as rotas
-        - **Total Rotas:** Quantidade total de rotas
-        - **Splitters:** Cada rota define o tipo de splitter para seus CTOs conforme a sequência:
+        - **Splitters:** Contagem de rotas por tipo, seguindo a sequência:
           - Rotas 1-4: Splitter 5/95
           - Rotas 5-8: Splitter 10/90  
           - Rota 9: Splitter 15/85
@@ -929,4 +898,5 @@ if uploaded_file is not None:
           - Rota 11: Splitter 30/70
           - Rota 12: Splitter 40/60
           - Rota 13: Splitter 50/50
+        - **Observação:** A sequência é contada globalmente para todas as rotas do POP
         """)
