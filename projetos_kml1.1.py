@@ -554,16 +554,22 @@ def criar_orcamento_materiais(dados_gpon):
     return df_orcamento
 
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
-    # Configuração dos splitters e suas quantidades na sequência
-    SEQUENCIA_SPLITTERS = [
-        ("5/95", 4),   # Primeiros 4 CTOs
-        ("10/90", 4),  # Próximos 4 CTOs
-        ("15/85", 1),  # Próximo 1 CTO
-        ("20/80", 1),  # Próximo 1 CTO
-        ("30/70", 1),  # Próximo 1 CTO
-        ("40/60", 1),  # Próximo 1 CTO
-        ("50/50", 1)   # Último 1 CTO
-    ]
+    # Mapeamento completo das posições 1-13
+    MAPEAMENTO_SPLITTER = {
+        1: "5/95",
+        2: "5/95",
+        3: "5/95",
+        4: "5/95",
+        5: "10/90",
+        6: "10/90",
+        7: "10/90",
+        8: "10/90",
+        9: "15/85",
+        10: "20/80",
+        11: "30/70",
+        12: "40/60",
+        13: "50/50"
+    }
     
     dados_tabela = []
     
@@ -571,28 +577,28 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
         if "primeiro_nivel" in dados:
             for pop in dados["primeiro_nivel"]:
                 if "ctos" in pop and pop["ctos"]:
-                    # Inicializa contadores
                     total_ctos = 0
-                    splitters = {tipo: 0 for tipo, _ in SEQUENCIA_SPLITTERS}
+                    splitters = {
+                        "5/95": 0,
+                        "10/90": 0,
+                        "15/85": 0,
+                        "20/80": 0,
+                        "30/70": 0,
+                        "40/60": 0,
+                        "50/50": 0
+                    }
                     
-                    # Coleta TODOS os CTOs de TODAS as rotas do POP
-                    todos_ctos = []
+                    # Processa TODAS as rotas de TODAS as CTOs
                     for cto in pop["ctos"]:
                         if "rotas" in cto:
                             for rota in cto["rotas"]:
-                                todos_ctos.extend([1] * rota["quantidade_placemarks"])  # 1 por CTO
-                    
-                    total_ctos = len(todos_ctos)
-                    
-                    # Distribuição cíclica pelos splitters
-                    cto_restante = total_ctos
-                    while cto_restante > 0:
-                        for splitter_type, qtd in SEQUENCIA_SPLITTERS:
-                            if cto_restante <= 0:
-                                break
-                            alocados = min(qtd, cto_restante)
-                            splitters[splitter_type] += alocados
-                            cto_restante -= alocados
+                                qtd_ctos = rota["quantidade_placemarks"]
+                                total_ctos += min(qtd_ctos, 13)  # Máximo 13 por rota
+                                
+                                # Distribui os CTOs desta rota (máx 13)
+                                for posicao in range(1, min(qtd_ctos, 13) + 1):
+                                    if posicao in MAPEAMENTO_SPLITTER:
+                                        splitters[MAPEAMENTO_SPLITTER[posicao]] += 1
                     
                     # Adiciona à tabela
                     dados_tabela.append([
@@ -615,7 +621,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
     ]
     df = pd.DataFrame(dados_tabela, columns=colunas)
     
-    # Adiciona linha de totais
+    # Adiciona totais
     df.loc["Total"] = df.sum(numeric_only=True)
     df.at["Total", "POP"] = "Total"
     
