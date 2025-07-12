@@ -881,20 +881,20 @@ if uploaded_file is not None:
         - **Plaqueta:** CABO 2FO Total ÷ 120 metros
         """)
 
-# Adicione esta chamada na seção principal do seu código, após processar os dados GPON
-if dados_gpon:
-    st.subheader("📊 Quantitativo de CTO's e Splitters por POP")
-    df_quantitativo = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
-    st.dataframe(df_quantitativo)
-    
-    st.markdown("""
-    **📝 Regras de Distribuição de Splitters:**
-    - **CTO 1 a 4:** Splitter 5/95
-    - **CTO 5 a 8:** Splitter 10/90  
-    - **CTO 9:** Splitter 15/85
-    - **CTO 10:** Splitter 20/80
-    - **CTO 11:** Splitter 30/70
-    - **CTO 12:** Splitter 40/60
-    - **CTO 13:** Splitter 50/50
-    """)
+    # Adicione esta chamada na seção principal do seu código, após processar os dados GPON
+    if dados_gpon:
+        st.subheader("📊 Quantitativo de CTO's e Splitters por POP")
+        df_quantitativo = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
+        st.dataframe(df_quantitativo)
+        
+        st.markdown("""
+        **📝 Regras de Distribuição de Splitters:**
+        - **CTO 1 a 4:** Splitter 5/95
+        - **CTO 5 a 8:** Splitter 10/90  
+        - **CTO 9:** Splitter 15/85
+        - **CTO 10:** Splitter 20/80
+        - **CTO 11:** Splitter 30/70
+        - **CTO 12:** Splitter 40/60
+        - **CTO 13:** Splitter 50/50
+        """)
 
