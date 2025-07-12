@@ -554,8 +554,8 @@ def criar_orcamento_materiais(dados_gpon):
     return df_orcamento
 
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
-    # Mapeamento completo das posições 1-13
-    MAPEAMENTO_SPLITTER = {
+    # Mapeamento das posições válidas (1-13)
+    MAPEAMENTO = {
         1: "5/95",
         2: "5/95",
         3: "5/95",
@@ -588,22 +588,22 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                         "50/50": 0
                     }
                     
-                    # Processa TODAS as rotas de TODAS as CTOs
+                    # Processa todas as CTOs e rotas
                     for cto in pop["ctos"]:
                         if "rotas" in cto:
                             for rota in cto["rotas"]:
                                 qtd_ctos = rota["quantidade_placemarks"]
-                                total_ctos += min(qtd_ctos, 13)  # Máximo 13 por rota
+                                total_ctos += qtd_ctos  # Conta TODOS os CTOs
                                 
-                                # Distribui os CTOs desta rota (máx 13)
-                                for posicao in range(1, min(qtd_ctos, 13) + 1):
-                                    if posicao in MAPEAMENTO_SPLITTER:
-                                        splitters[MAPEAMENTO_SPLITTER[posicao]] += 1
+                                # Distribui apenas os CTOs que se encaixam nas posições 1-13
+                                for i in range(1, min(qtd_ctos, 13) + 1):
+                                    if i in MAPEAMENTO:
+                                        splitters[MAPEAMENTO[i]] += 1
                     
-                    # Adiciona à tabela
+                    # Adiciona os dados à tabela
                     dados_tabela.append([
                         pop["nome"],
-                        total_ctos,
+                        total_ctos,  # Inclui TODOS os CTOs
                         splitters["5/95"],
                         splitters["10/90"],
                         splitters["15/85"],
@@ -613,13 +613,21 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                         splitters["50/50"]
                     ])
     
-    # Cria DataFrame
-    colunas = [
-        "POP", "Total CTO's",
-        "Splitter 5/95", "Splitter 10/90", "Splitter 15/85",
-        "Splitter 20/80", "Splitter 30/70", "Splitter 40/60", "Splitter 50/50"
-    ]
-    df = pd.DataFrame(dados_tabela, columns=colunas)
+    # Cria o DataFrame
+    df = pd.DataFrame(
+        dados_tabela,
+        columns=[
+            "POP",
+            "Total CTO's",  # Agora inclui todos os CTOs
+            "Splitter 5/95",
+            "Splitter 10/90",
+            "Splitter 15/85",
+            "Splitter 20/80",
+            "Splitter 30/70",
+            "Splitter 40/60",
+            "Splitter 50/50"
+        ]
+    )
     
     # Adiciona totais
     df.loc["Total"] = df.sum(numeric_only=True)
