@@ -289,27 +289,81 @@ def criar_tabela_interativa_gpon(dados_gpon):
         st.warning("Nenhum dado GPON disponível para análise.")
         return
     
-    if not any("primeiro_nivel" in dados for dados in dados_gpon.values()):
-        st.error("Estrutura de dados GPON inválida.")
-        return
-    
-    unique_id = f"{int(time.time() * 1000)}_{random.randint(0, 1000000)}"
-    
-    opcoes_primeiro_nivel = ["TODAS"]
+    # Coletar todos os POPs disponíveis
+    opcoes_pops = ["TODOS"]
     for nome_gpon, dados in dados_gpon.items():
         if "primeiro_nivel" in dados:
             for subpasta in dados["primeiro_nivel"]:
-                if subpasta["nome"] not in opcoes_primeiro_nivel:
-                    opcoes_primeiro_nivel.append(subpasta["nome"])
+                pop_name = subpasta["nome"]
+                if pop_name not in opcoes_pops:
+                    opcoes_pops.append(pop_name)
     
-    selecionado = st.selectbox(
+    # Selecionar POP para análise
+    pop_selecionado = st.selectbox(
         "Selecione o POP para análise:",
-        opcoes_primeiro_nivel,
-        key=f"select_pop_{unique_id}"
+        opcoes_pops,
+        key=f"select_pop_{time.time()}"
     )
     
-    if selecionado == "TODAS":
+    if pop_selecionado == "TODOS":
         st.write("### Informações de TODOS os POPs")
+        
+        # Inicializar listas para armazenar dados
+        dados_tabela_rotas = []
+        dados_tabela_quantidade_rotas = []
+        
+        # Processar todos os POPs
+        for nome_gpon, dados in dados_gpon.items():
+            if "primeiro_nivel" in dados:
+                for subpasta in dados["primeiro_nivel"]:
+                    if "ctos" in subpasta:
+                        for cto in subpasta["ctos"]:
+                            quantidade_rotas = 0
+                            if "rotas" in cto:
+                                for rota in cto["rotas"]:
+                                    dados_tabela_rotas.append([
+                                        subpasta["nome"],  # Nome do POP
+                                        cto["nome"],       # Nome do projeto
+                                        rota["nome_rota"], # Nome da rota
+                                        rota["quantidade_placemarks"]  # Quantidade de CTOs
+                                    ])
+                                    quantidade_rotas += 1
+                            
+                            dados_tabela_quantidade_rotas.append([
+                                subpasta["nome"],  # Nome do POP
+                                cto["nome"],       # Nome do projeto
+                                quantidade_rotas   # Quantidade de rotas
+                            ])
+        
+        # Criar DataFrame de quantidade de rotas
+        df_tabela_quantidade_rotas = pd.DataFrame(
+            dados_tabela_quantidade_rotas,
+            columns=["POP", "Projeto", "Rotas"]
+        )
+        
+        # Adicionar totais
+        total_rotas = df_tabela_quantidade_rotas["Rotas"].sum()
+        df_tabela_quantidade_rotas.loc["Total"] = ["", "Total", total_rotas]
+        
+        st.write("#### Quantidade de Rotas por projeto")
+        st.dataframe(df_tabela_quantidade_rotas)
+        
+        # Criar DataFrame de rotas e CTOs
+        df_tabela_rotas = pd.DataFrame(
+            dados_tabela_rotas,
+            columns=["POP", "Projeto", "Rota", "CTO'S"]
+        )
+        
+        # Adicionar totais
+        total_placemarks = df_tabela_rotas["CTO'S"].sum()
+        df_tabela_rotas.loc["Total"] = ["", "", "Total", total_placemarks]
+        
+        st.write("#### Rotas e CTO's")
+        st.dataframe(df_tabela_rotas)
+    
+    else:
+        # Processar apenas o POP selecionado
+        st.write(f"### Informações do POP: {pop_selecionado}")
         
         dados_tabela_rotas = []
         dados_tabela_quantidade_rotas = []
@@ -317,7 +371,7 @@ def criar_tabela_interativa_gpon(dados_gpon):
         for nome_gpon, dados in dados_gpon.items():
             if "primeiro_nivel" in dados:
                 for subpasta in dados["primeiro_nivel"]:
-                    if "ctos" in subpasta:
+                    if subpasta["nome"] == pop_selecionado and "ctos" in subpasta:
                         for cto in subpasta["ctos"]:
                             quantidade_rotas = 0
                             if "rotas" in cto:
@@ -334,83 +388,33 @@ def criar_tabela_interativa_gpon(dados_gpon):
                                 quantidade_rotas
                             ])
         
-        df_tabela_quantidade_rotas = pd.DataFrame(
-            dados_tabela_quantidade_rotas,
-            columns=["Projeto", "Rotas"]
-        )
+        # Mostrar tabelas apenas se houver dados
+        if dados_tabela_quantidade_rotas:
+            df_tabela_quantidade_rotas = pd.DataFrame(
+                dados_tabela_quantidade_rotas,
+                columns=["Projeto", "Rotas"]
+            )
+            
+            total_rotas = df_tabela_quantidade_rotas["Rotas"].sum()
+            df_tabela_quantidade_rotas.loc["Total"] = ["Total", total_rotas]
+            
+            st.write("#### Quantidade de Rotas por projeto")
+            st.dataframe(df_tabela_quantidade_rotas)
         
-        df_tabela_quantidade_rotas.insert(0, "ID", range(1, len(df_tabela_quantidade_rotas) + 1))
-        total_rotas = df_tabela_quantidade_rotas["Rotas"].sum()
-        df_tabela_quantidade_rotas.loc["Total"] = ["", "Total", total_rotas]
-        df_tabela_quantidade_rotas.set_index("ID", inplace=True)
+        if dados_tabela_rotas:
+            df_tabela_rotas = pd.DataFrame(
+                dados_tabela_rotas,
+                columns=["Projeto", "Rota", "CTO'S"]
+            )
+            
+            total_placemarks = df_tabela_rotas["CTO'S"].sum()
+            df_tabela_rotas.loc["Total"] = ["Total", "", total_placemarks]
+            
+            st.write("#### Rotas e CTO's")
+            st.dataframe(df_tabela_rotas)
         
-        st.write("#### Quantidade de Rotas por projeto")
-        st.dataframe(df_tabela_quantidade_rotas, key=f"qtd_rotas_{unique_id}")
-        
-        df_tabela_rotas = pd.DataFrame(
-            dados_tabela_rotas,
-            columns=["Projeto", "Rota", "CTO'S"]
-        )
-        
-        df_tabela_rotas.insert(0, "ID", range(1, len(df_tabela_rotas) + 1))
-        total_placemarks = df_tabela_rotas["CTO'S"].sum()
-        df_tabela_rotas.loc["Total"] = ["", "Total", "", total_placemarks]
-        df_tabela_rotas.set_index("ID", inplace=True)
-        
-        st.write("#### Rotas e CTO's")
-        st.dataframe(df_tabela_rotas, key=f"rotas_ctos_{unique_id}")
-    else:
-        for nome_gpon, dados in dados_gpon.items():
-            if "primeiro_nivel" in dados:
-                for subpasta in dados["primeiro_nivel"]:
-                    if subpasta["nome"] == selecionado:
-                        st.write(f"### Informações de: {selecionado}")
-                        
-                        dados_tabela_rotas = []
-                        dados_tabela_quantidade_rotas = []
-                        
-                        if "ctos" in subpasta:
-                            for cto in subpasta["ctos"]:
-                                quantidade_rotas = 0
-                                if "rotas" in cto:
-                                    for rota in cto["rotas"]:
-                                        dados_tabela_rotas.append([
-                                            cto["nome"],
-                                            rota["nome_rota"],
-                                            rota["quantidade_placemarks"]
-                                        ])
-                                        quantidade_rotas += 1
-                                
-                                dados_tabela_quantidade_rotas.append([
-                                    cto["nome"],
-                                    quantidade_rotas
-                                ])
-                        
-                        df_tabela_quantidade_rotas = pd.DataFrame(
-                            dados_tabela_quantidade_rotas,
-                            columns=["Projeto", "Rotas"]
-                        )
-                        
-                        df_tabela_quantidade_rotas.insert(0, "ID", range(1, len(df_tabela_quantidade_rotas) + 1))
-                        total_rotas = df_tabela_quantidade_rotas["Rotas"].sum()
-                        df_tabela_quantidade_rotas.loc["Total"] = ["", "Total", total_rotas]
-                        df_tabela_quantidade_rotas.set_index("ID", inplace=True)
-                        
-                        st.write("#### Quantidade de Rotas por projeto")
-                        st.dataframe(df_tabela_quantidade_rotas, key=f"qtd_rotas_{selecionado}_{unique_id}")
-                        
-                        df_tabela_rotas = pd.DataFrame(
-                            dados_tabela_rotas,
-                            columns=["Projeto", "Rota", "CTO'S"]
-                        )
-                        
-                        df_tabela_rotas.insert(0, "ID", range(1, len(df_tabela_rotas) + 1))
-                        total_placemarks = df_tabela_rotas["CTO'S"].sum()
-                        df_tabela_rotas.loc["Total"] = ["", "Total", "", total_placemarks]
-                        df_tabela_rotas.set_index("ID", inplace=True)
-                        
-                        st.write("#### Rotas e CTO's")
-                        st.dataframe(df_tabela_rotas, key=f"rotas_ctos_{selecionado}_{unique_id}")
+        if not dados_tabela_quantidade_rotas and not dados_tabela_rotas:
+            st.warning(f"Nenhum dado de CTO encontrado para o POP {pop_selecionado}")
 
 def calcular_porcentagem_concluida(dados_por_pasta, dados_concluido):
     porcentagens = {}
