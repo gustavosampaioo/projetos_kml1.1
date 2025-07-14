@@ -289,14 +289,24 @@ def criar_tabela_interativa_gpon(dados_gpon):
         st.warning("Nenhum dado GPON disponível para análise.")
         return
     
-    # Coletar todos os POPs disponíveis
-    opcoes_pops = ["TODOS"]
+    # Coletar todos os POPs disponíveis de forma mais robusta
+    opcoes_pops = ["TODOS OS POPs"]
+    pops_com_ctos = []
+    
     for nome_gpon, dados in dados_gpon.items():
         if "primeiro_nivel" in dados:
             for subpasta in dados["primeiro_nivel"]:
-                pop_name = subpasta["nome"]
+                pop_name = subpasta.get("nome", "Desconhecido")
                 if pop_name not in opcoes_pops:
                     opcoes_pops.append(pop_name)
+                # Verifica se este POP tem CTOs
+                if "ctos" in subpasta and subpasta["ctos"]:
+                    pops_com_ctos.append(pop_name)
+    
+    # Se nenhum POP tiver CTOs, mostrar mensagem
+    if not pops_com_ctos:
+        st.warning("Nenhum dado de CTO encontrado nos POPs.")
+        return
     
     # Selecionar POP para análise
     pop_selecionado = st.selectbox(
@@ -305,116 +315,135 @@ def criar_tabela_interativa_gpon(dados_gpon):
         key=f"select_pop_{time.time()}"
     )
     
-    if pop_selecionado == "TODOS":
-        st.write("### Informações de TODOS os POPs")
+    if pop_selecionado == "TODOS OS POPs":
+        st.write("### Informações Consolidadas de Todos os POPs")
         
-        # Inicializar listas para armazenar dados
-        dados_tabela_rotas = []
-        dados_tabela_quantidade_rotas = []
+        # Inicializar estruturas para armazenar dados consolidados
+        dados_consolidados = {
+            'rotas': [],
+            'quantidade_rotas': [],
+            'materiais': [],
+            'splitters': []
+        }
         
-        # Processar todos os POPs
+        # Processar todos os POPs que têm CTOs
         for nome_gpon, dados in dados_gpon.items():
             if "primeiro_nivel" in dados:
                 for subpasta in dados["primeiro_nivel"]:
-                    if "ctos" in subpasta:
+                    if subpasta["nome"] in pops_com_ctos and "ctos" in subpasta:
+                        # Processar CTOs e rotas
                         for cto in subpasta["ctos"]:
-                            quantidade_rotas = 0
+                            qtd_rotas = 0
                             if "rotas" in cto:
                                 for rota in cto["rotas"]:
-                                    dados_tabela_rotas.append([
-                                        subpasta["nome"],  # Nome do POP
-                                        cto["nome"],       # Nome do projeto
-                                        rota["nome_rota"], # Nome da rota
-                                        rota["quantidade_placemarks"]  # Quantidade de CTOs
+                                    dados_consolidados['rotas'].append([
+                                        subpasta["nome"],
+                                        cto["nome"],
+                                        rota["nome_rota"],
+                                        rota["quantidade_placemarks"]
                                     ])
-                                    quantidade_rotas += 1
+                                    qtd_rotas += 1
                             
-                            dados_tabela_quantidade_rotas.append([
-                                subpasta["nome"],  # Nome do POP
-                                cto["nome"],       # Nome do projeto
-                                quantidade_rotas   # Quantidade de rotas
+                            dados_consolidados['quantidade_rotas'].append([
+                                subpasta["nome"],
+                                cto["nome"],
+                                qtd_rotas
                             ])
         
-        # Criar DataFrame de quantidade de rotas
-        df_tabela_quantidade_rotas = pd.DataFrame(
-            dados_tabela_quantidade_rotas,
-            columns=["POP", "Projeto", "Rotas"]
-        )
+        # Exibir tabelas consolidadas
+        if dados_consolidados['quantidade_rotas']:
+            df_qtd_rotas = pd.DataFrame(
+                dados_consolidados['quantidade_rotas'],
+                columns=["POP", "Projeto", "Rotas"]
+            )
+            
+            st.write("#### Quantidade de Rotas por Projeto")
+            st.dataframe(df_qtd_rotas)
         
-        # Adicionar totais
-        total_rotas = df_tabela_quantidade_rotas["Rotas"].sum()
-        df_tabela_quantidade_rotas.loc["Total"] = ["", "Total", total_rotas]
-        
-        st.write("#### Quantidade de Rotas por projeto")
-        st.dataframe(df_tabela_quantidade_rotas)
-        
-        # Criar DataFrame de rotas e CTOs
-        df_tabela_rotas = pd.DataFrame(
-            dados_tabela_rotas,
-            columns=["POP", "Projeto", "Rota", "CTO'S"]
-        )
-        
-        # Adicionar totais
-        total_placemarks = df_tabela_rotas["CTO'S"].sum()
-        df_tabela_rotas.loc["Total"] = ["", "", "Total", total_placemarks]
-        
-        st.write("#### Rotas e CTO's")
-        st.dataframe(df_tabela_rotas)
+        if dados_consolidados['rotas']:
+            df_rotas = pd.DataFrame(
+                dados_consolidados['rotas'],
+                columns=["POP", "Projeto", "Rota", "CTO's"]
+            )
+            
+            st.write("#### Detalhes de Rotas e CTO's")
+            st.dataframe(df_rotas)
     
     else:
         # Processar apenas o POP selecionado
-        st.write(f"### Informações do POP: {pop_selecionado}")
+        st.write(f"### Análise Detalhada do POP: {pop_selecionado}")
         
-        dados_tabela_rotas = []
-        dados_tabela_quantidade_rotas = []
+        # Encontrar o POP específico
+        pop_encontrado = False
+        dados_pop = {
+            'rotas': [],
+            'quantidade_rotas': []
+        }
         
         for nome_gpon, dados in dados_gpon.items():
             if "primeiro_nivel" in dados:
                 for subpasta in dados["primeiro_nivel"]:
                     if subpasta["nome"] == pop_selecionado and "ctos" in subpasta:
+                        pop_encontrado = True
+                        
+                        # Processar CTOs e rotas
                         for cto in subpasta["ctos"]:
-                            quantidade_rotas = 0
+                            qtd_rotas = 0
                             if "rotas" in cto:
                                 for rota in cto["rotas"]:
-                                    dados_tabela_rotas.append([
+                                    dados_pop['rotas'].append([
                                         cto["nome"],
                                         rota["nome_rota"],
                                         rota["quantidade_placemarks"]
                                     ])
-                                    quantidade_rotas += 1
+                                    qtd_rotas += 1
                             
-                            dados_tabela_quantidade_rotas.append([
+                            dados_pop['quantidade_rotas'].append([
                                 cto["nome"],
-                                quantidade_rotas
+                                qtd_rotas
                             ])
         
-        # Mostrar tabelas apenas se houver dados
-        if dados_tabela_quantidade_rotas:
-            df_tabela_quantidade_rotas = pd.DataFrame(
-                dados_tabela_quantidade_rotas,
+        if not pop_encontrado:
+            st.warning(f"POP {pop_selecionado} não encontrado ou não possui dados de CTO.")
+            return
+        
+        # Exibir tabelas do POP selecionado
+        if dados_pop['quantidade_rotas']:
+            df_qtd_rotas = pd.DataFrame(
+                dados_pop['quantidade_rotas'],
                 columns=["Projeto", "Rotas"]
             )
             
-            total_rotas = df_tabela_quantidade_rotas["Rotas"].sum()
-            df_tabela_quantidade_rotas.loc["Total"] = ["Total", total_rotas]
-            
-            st.write("#### Quantidade de Rotas por projeto")
-            st.dataframe(df_tabela_quantidade_rotas)
+            st.write("#### Quantidade de Rotas por Projeto")
+            st.dataframe(df_qtd_rotas)
         
-        if dados_tabela_rotas:
-            df_tabela_rotas = pd.DataFrame(
-                dados_tabela_rotas,
-                columns=["Projeto", "Rota", "CTO'S"]
+        if dados_pop['rotas']:
+            df_rotas = pd.DataFrame(
+                dados_pop['rotas'],
+                columns=["Projeto", "Rota", "CTO's"]
             )
             
-            total_placemarks = df_tabela_rotas["CTO'S"].sum()
-            df_tabela_rotas.loc["Total"] = ["Total", "", total_placemarks]
-            
-            st.write("#### Rotas e CTO's")
-            st.dataframe(df_tabela_rotas)
+            st.write("#### Detalhes de Rotas e CTO's")
+            st.dataframe(df_rotas)
         
-        if not dados_tabela_quantidade_rotas and not dados_tabela_rotas:
-            st.warning(f"Nenhum dado de CTO encontrado para o POP {pop_selecionado}")
+        # Adicionar seção de materiais e splitters se disponíveis
+        st.write("### Outras Informações do POP")
+        
+        # Verificar e mostrar materiais se existirem
+        if any("materiais" in subpasta for nome_gpon, dados in dados_gpon.items() 
+               for subpasta in dados.get("primeiro_nivel", []) 
+               if subpasta.get("nome") == pop_selecionado):
+            
+            st.write("#### Materiais para este POP")
+            # Aqui você pode adicionar a lógica para mostrar os materiais específicos
+            
+        # Verificar e mostrar splitters se existirem
+        if any("splitters" in subpasta for nome_gpon, dados in dados_gpon.items() 
+               for subpasta in dados.get("primeiro_nivel", []) 
+               if subpasta.get("nome") == pop_selecionado):
+            
+            st.write("#### Distribuição de Splitters")
+            # Aqui você pode adicionar a lógica para mostrar os splitters específicos
 
 def calcular_porcentagem_concluida(dados_por_pasta, dados_concluido):
     porcentagens = {}
