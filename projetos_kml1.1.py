@@ -563,6 +563,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
             for pop in dados["primeiro_nivel"]:
                 if "ctos" in pop and pop["ctos"]:
                     total_ctos = 0
+                    total_rotas = 0  # Novo contador para total de rotas
                     splitters = {
                         "5/95": 0,
                         "10/90": 0,
@@ -576,6 +577,9 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                     # Processa todas as CTOs e rotas
                     for cto in pop["ctos"]:
                         if "rotas" in cto:
+                            qtd_rotas = len(cto["rotas"])
+                            total_rotas += qtd_rotas  # Soma todas as rotas do POP
+                            
                             for rota in cto["rotas"]:
                                 qtd_ctos = rota["quantidade_placemarks"]
                                 total_ctos += qtd_ctos  # Conta TODOS os CTOs
@@ -585,17 +589,25 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
                                     if i in MAPEAMENTO:
                                         splitters[MAPEAMENTO[i]] += 1
                     
+                    # Calcula os novos materiais
+                    fita_aco = max(1, round(total_rotas / 2))  # 1 fita para cada 2 rotas (mínimo 1)
+                    fecho = total_ctos  # 1 fecho por CTO
+                    tubete = total_ctos * 5  # 5 tubetes por CTO
+                    
                     # Adiciona os dados à tabela
                     dados_tabela.append([
                         pop["nome"],
-                        total_ctos,  # Inclui TODOS os CTOs
+                        total_ctos,
                         splitters["5/95"],
                         splitters["10/90"],
                         splitters["15/85"],
                         splitters["20/80"],
                         splitters["30/70"],
                         splitters["40/60"],
-                        splitters["50/50"]
+                        splitters["50/50"],
+                        fita_aco,
+                        fecho,
+                        tubete
                     ])
     
     # Cria o DataFrame
@@ -603,14 +615,17 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
         dados_tabela,
         columns=[
             "POP",
-            "Total CTO's",  # Agora inclui todos os CTOs
+            "Total CTO's",
             "Splitter 5/95",
             "Splitter 10/90",
             "Splitter 15/85",
             "Splitter 20/80",
             "Splitter 30/70",
             "Splitter 40/60",
-            "Splitter 50/50"
+            "Splitter 50/50",
+            "Fita de Aço (un)",
+            "Fecho (un)",
+            "Tubete (un)"
         ]
     )
     
