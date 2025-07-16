@@ -467,6 +467,126 @@ def criar_grafico_pizza_porcentagem_concluida(porcentagens, dados_por_pasta, roo
 
         st.plotly_chart(fig)
 
+def criar_orcamento_lancamento_link_por_rota(dados_tabela_pastas):
+    """
+    Calcula os materiais necessários para lançamento do LINK por rota individual.
+    """
+    # Lista para armazenar os dados do orçamento
+    dados_orcamento = []
+    
+    # Processa cada rota individualmente
+    for _, row in dados_tabela_pastas.iterrows():
+        pasta = row['Pasta']
+        rota = row['ROTAS LINK']
+        distancia = row['Distância (m)']
+        
+        # Cálculos dos materiais
+        cabo_12fo = distancia * 1.10
+        parafuso_olhal = max(1, round(cabo_12fo / 70))
+        alca_branca = max(1, round(cabo_12fo / 35))
+        plaqueta = max(1, round(cabo_12fo / 100))
+        arame_espinar = max(1, round(cabo_12fo / 10000))
+        
+        dados_orcamento.append([
+            pasta,
+            rota,
+            round(distancia, 2),
+            round(cabo_12fo, 2),
+            parafuso_olhal,
+            alca_branca,
+            plaqueta,
+            arame_espinar
+        ])
+    
+    # Cria o DataFrame
+    columns = [
+        "Pasta", "Rota", "Distância Projetada (m)", 
+        "CABO 12FO (m)", "Parafuso Olhal (un)", 
+        "Alça Branca (un)", "Plaqueta (un)", "Arame Espinar (un)"
+    ]
+    df_orcamento = pd.DataFrame(dados_orcamento, columns=columns)
+    
+    # Adiciona coluna de ID
+    df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
+    
+    # Adiciona linha de totais (certificando-se que temos valores para todas as colunas)
+    if not df_orcamento.empty:
+        total_row = [
+            "",  # ID
+            "Total",  # Pasta
+            "",  # Rota
+            df_orcamento["Distância Projetada (m)"].sum(),
+            df_orcamento["CABO 12FO (m)"].sum(),
+            df_orcamento["Parafuso Olhal (un)"].sum(),
+            df_orcamento["Alça Branca (un)"].sum(),
+            df_orcamento["Plaqueta (un)"].sum(),
+            df_orcamento["Arame Espinar (un)"].sum()
+        ]
+        
+        # Certifica que temos o mesmo número de colunas
+        if len(total_row) == len(df_orcamento.columns):
+            df_orcamento.loc[len(df_orcamento)] = total_row
+    
+    df_orcamento.set_index("ID", inplace=True)
+    return df_orcamento
+
+def criar_orcamento_fusao_link_por_rota(dados_tabela_pastas):
+    """
+    Calcula os materiais necessários para fusão do LINK por rota individual.
+    Foca apenas em CEO'S 24FO e CEO'S 24FO MINI.
+    """
+    # Lista para armazenar os dados do orçamento
+    dados_orcamento = []
+    
+    # Processa cada rota individualmente
+    for _, row in dados_tabela_pastas.iterrows():
+        pasta = row['Pasta']
+        rota = row['ROTAS LINK']
+        distancia = row['Distância (m)']
+        
+        # Cálculo do CABO 12FO (distância + 10%) - apenas para cálculo interno
+        cabo_12fo = distancia * 1.10
+        
+        # Cálculo de CEO's (30% 24FO e 70% 24FO MINI)
+        qtd_ceos = max(1, round(cabo_12fo / 3000))  # Arredonda para cima a cada 3000m ou mínimo 1
+        ceos_24fo = max(1, round(qtd_ceos * 0.3))  # 30% para 24FO (mínimo 1)
+        ceos_24fo_mini = max(1, round(qtd_ceos * 0.7))  # 70% para 24FO MINI (mínimo 1)
+        
+        dados_orcamento.append([
+            pasta,
+            rota,
+            round(distancia, 2),
+            ceos_24fo,
+            ceos_24fo_mini
+        ])
+    
+    # Cria o DataFrame
+    columns = [
+        "Pasta", "Rota", "Distância Projetada (m)", 
+        "CEO'S 24FO (un)", "CEO'S 24FO MINI (un)"
+    ]
+    df_orcamento = pd.DataFrame(dados_orcamento, columns=columns)
+    
+    # Adiciona coluna de ID
+    df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
+    
+    # Adiciona linha de totais
+    if not df_orcamento.empty:
+        total_row = [
+            "",  # ID
+            "Total",  # Pasta
+            "",  # Rota
+            df_orcamento["CEO'S 24FO (un)"].sum(),
+            df_orcamento["CEO'S 24FO MINI (un)"].sum()
+        ]
+        
+        df_orcamento.loc[len(df_orcamento)] = total_row
+    
+    df_orcamento.set_index("ID", inplace=True)
+    return df_orcamento
+
+
+
 def criar_orcamento_materiais(dados_gpon):
     # Inicializa listas para armazenar dados
     dados_orcamento = []
@@ -538,68 +658,7 @@ def criar_orcamento_materiais(dados_gpon):
     
     return df_orcamento
 
-def criar_orcamento_lancamento_link_por_rota(dados_tabela_pastas):
-    """
-    Calcula os materiais necessários para lançamento do LINK por rota individual.
-    """
-    # Lista para armazenar os dados do orçamento
-    dados_orcamento = []
-    
-    # Processa cada rota individualmente
-    for _, row in dados_tabela_pastas.iterrows():
-        pasta = row['Pasta']
-        rota = row['ROTAS LINK']
-        distancia = row['Distância (m)']
-        
-        # Cálculos dos materiais
-        cabo_12fo = distancia * 1.10
-        parafuso_olhal = max(1, round(cabo_12fo / 70))
-        alca_branca = max(1, round(cabo_12fo / 35))
-        plaqueta = max(1, round(cabo_12fo / 100))
-        arame_espinar = max(1, round(cabo_12fo / 10000))
-        
-        dados_orcamento.append([
-            pasta,
-            rota,
-            round(distancia, 2),
-            round(cabo_12fo, 2),
-            parafuso_olhal,
-            alca_branca,
-            plaqueta,
-            arame_espinar
-        ])
-    
-    # Cria o DataFrame
-    columns = [
-        "Pasta", "Rota", "Distância Projetada (m)", 
-        "CABO 12FO (m)", "Parafuso Olhal (un)", 
-        "Alça Branca (un)", "Plaqueta (un)", "Arame Espinar (un)"
-    ]
-    df_orcamento = pd.DataFrame(dados_orcamento, columns=columns)
-    
-    # Adiciona coluna de ID
-    df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
-    
-    # Adiciona linha de totais (certificando-se que temos valores para todas as colunas)
-    if not df_orcamento.empty:
-        total_row = [
-            "",  # ID
-            "Total",  # Pasta
-            "",  # Rota
-            df_orcamento["Distância Projetada (m)"].sum(),
-            df_orcamento["CABO 12FO (m)"].sum(),
-            df_orcamento["Parafuso Olhal (un)"].sum(),
-            df_orcamento["Alça Branca (un)"].sum(),
-            df_orcamento["Plaqueta (un)"].sum(),
-            df_orcamento["Arame Espinar (un)"].sum()
-        ]
-        
-        # Certifica que temos o mesmo número de colunas
-        if len(total_row) == len(df_orcamento.columns):
-            df_orcamento.loc[len(df_orcamento)] = total_row
-    
-    df_orcamento.set_index("ID", inplace=True)
-    return df_orcamento
+
 
 
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
@@ -906,7 +965,7 @@ if uploaded_file is not None:
     criar_tabela_interativa_gpon(dados_gpon)
 
     # Na seção de exibição do orçamento para LINK:
-    st.subheader("📊 Lista de Materiais para Lançamento - LINK (por Rota)")
+    st.subheader("📊 Lista de Materiais para Lançamento - LINK")
     
     # Garante que temos um DataFrame válido
     if isinstance(dados_tabela_pastas, list):
@@ -935,6 +994,25 @@ if uploaded_file is not None:
     else:
         st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais.")
 
+    # Na seção de exibição do orçamento para fusão LINK:
+    st.subheader("📊 Lista de Materiais para Fusão - LINK")
+    
+    if not df_tabela_pastas.empty:
+        try:
+            df_orcamento_fusao = criar_orcamento_fusao_link_por_rota(df_tabela_pastas)
+            st.dataframe(df_orcamento_fusao)
+            
+            st.markdown("""
+            **📝 Fórmulas de Cálculo:**
+            - **CEO'S:** 
+              - Total de CEO'S = (Distância + 10%) ÷ 3.000 metros (arredondado para cima, mínimo 1)
+              - 30% CEO'S 24FO (mínimo 1)
+              - 70% CEO'S 24FO MINI (mínimo 1)
+            """)
+        except Exception as e:
+            st.error(f"Erro ao gerar orçamento de fusão: {str(e)}")
+    else:
+        st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais de fusão.")
     
     # Na seção de exibição do orçamento:
     st.subheader("📊 Lista de Materiais para Lançamento")
