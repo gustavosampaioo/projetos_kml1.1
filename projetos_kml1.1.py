@@ -995,10 +995,9 @@ if uploaded_file is not None:
     # Na seção de exibição do orçamento para fusão LINK:
     st.subheader("📊 Lista de Materiais para Fusão - LINK")
     
-    if not df_tabela_pastas.empty:
-        try:
-            df_orcamento_fusao = criar_orcamento_fusao_link_por_rota(df_tabela_pastas)
-            st.dataframe(df_orcamento_fusao)
+    if not df_tabela_pastas.empty and all(col in df_tabela_pastas.columns for col in ["Pasta", "ROTAS LINK", "Distância (m)"]):
+        df_orcamento_fusao = criar_orcamento_fusao_link_por_rota(df_tabela_pastas)
+        st.dataframe(df_orcamento_fusao)
             
             st.markdown("""
             **📝 Fórmulas de Cálculo:**
@@ -1010,7 +1009,7 @@ if uploaded_file is not None:
         except Exception as e:
             st.error(f"Erro ao gerar orçamento de fusão: {str(e)}")
     else:
-        st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais de fusão.")
+        st.warning("Dados necessários não disponíveis para cálculo de materiais de fusão.")
     
     # Na seção de exibição do orçamento:
     st.subheader("📊 Lista de Materiais para Lançamento - GPON")
