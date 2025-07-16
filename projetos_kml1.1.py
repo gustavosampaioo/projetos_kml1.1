@@ -570,16 +570,24 @@ def criar_orcamento_fusao_link_por_rota(dados_tabela_pastas):
     # Adiciona coluna de ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
-    # Adiciona linha de totais
+    # Adiciona linha de totais - garantindo que temos o mesmo número de colunas
     if not df_orcamento.empty:
-        total_row = [
-            "",  # ID
-            "Total",  # Pasta
-            "",  # Rota
-            df_orcamento["CEO'S 24FO (un)"].sum(),
-            df_orcamento["CEO'S 24FO MINI (un)"].sum()
-        ]
+        # Primeiro calculamos os totais
+        total_distancia = df_orcamento["Distância Projetada (m)"].sum()
+        total_24fo = df_orcamento["CEO'S 24FO (un)"].sum()
+        total_24fo_mini = df_orcamento["CEO'S 24FO MINI (un)"].sum()
         
+        # Criamos a linha de total com todas as colunas
+        total_row = {
+            "ID": "",
+            "Pasta": "Total",
+            "Rota": "",
+            "Distância Projetada (m)": total_distancia,
+            "CEO'S 24FO (un)": total_24fo,
+            "CEO'S 24FO MINI (un)": total_24fo_mini
+        }
+        
+        # Usamos loc com o próximo índice disponível
         df_orcamento.loc[len(df_orcamento)] = total_row
     
     df_orcamento.set_index("ID", inplace=True)
