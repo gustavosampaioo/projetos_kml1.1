@@ -570,17 +570,20 @@ def criar_orcamento_fusao_link_por_rota(dados_tabela_pastas):
     # Adiciona coluna de ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
-    # Adiciona linha de totais
+    # Adiciona linha de totais apenas se houver dados
     if not df_orcamento.empty:
-        total_row = [
-            "",  # ID
-            "Total",  # Pasta
-            "",  # Rota
-            df_orcamento["CEO'S 24FO (un)"].sum(),
-            df_orcamento["CEO'S 24FO MINI (un)"].sum()
-        ]
+        # Cria um dicionário com os totais para garantir que todas as colunas estejam presentes
+        total_row = {
+            "ID": "",
+            "Pasta": "Total",
+            "Rota": "",
+            "Distância Projetada (m)": df_orcamento["Distância Projetada (m)"].sum(),
+            "CEO'S 24FO (un)": df_orcamento["CEO'S 24FO (un)"].sum(),
+            "CEO'S 24FO MINI (un)": df_orcamento["CEO'S 24FO MINI (un)"].sum()
+        }
         
-        df_orcamento.loc[len(df_orcamento)] = total_row
+        # Adiciona a linha de total usando loc para garantir o alinhamento das colunas
+        df_orcamento = df_orcamento.append(total_row, ignore_index=True)
     
     df_orcamento.set_index("ID", inplace=True)
     return df_orcamento
@@ -1010,7 +1013,7 @@ if uploaded_file is not None:
         st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais de fusão.")
     
     # Na seção de exibição do orçamento:
-    st.subheader("📊 Lista de Materiais para Lançamento")
+    st.subheader("📊 Lista de Materiais para Lançamento - GPON")
     
     if dados_gpon:
         df_orcamento = criar_orcamento_materiais(dados_gpon)
@@ -1027,11 +1030,9 @@ if uploaded_file is not None:
         - **Plaqueta:** CABO 2FO ÷ 120 metros
         """)
 
-
-    
     # No dashboard principal:
     if dados_gpon:
-        st.subheader("📊 Lista de Materiais para Fusão")
+        st.subheader("📊 Lista de Materiais para Fusão - GPON")
         
         df_splitters = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
         
