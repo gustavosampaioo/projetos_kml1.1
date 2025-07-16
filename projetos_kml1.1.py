@@ -53,7 +53,8 @@ def processar_folder_link(folder, estilos):
     coordenadas_folder = []
     dados_em_andamento = []
     dados_concluido = []
-    
+
+
     nome_folder = folder.name.text if hasattr(folder, 'name') else "Desconhecido"
     is_link_parceiros = "LINK PARCEIROS" in nome_folder.upper()
     
