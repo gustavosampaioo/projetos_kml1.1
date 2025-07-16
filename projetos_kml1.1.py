@@ -570,20 +570,17 @@ def criar_orcamento_fusao_link_por_rota(dados_tabela_pastas):
     # Adiciona coluna de ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
-    # Adiciona linha de totais apenas se houver dados
+    # Adiciona linha de totais
     if not df_orcamento.empty:
-        # Cria um dicionário com os totais para garantir que todas as colunas estejam presentes
-        total_row = {
-            "ID": "",
-            "Pasta": "Total",
-            "Rota": "",
-            "Distância Projetada (m)": df_orcamento["Distância Projetada (m)"].sum(),
-            "CEO'S 24FO (un)": df_orcamento["CEO'S 24FO (un)"].sum(),
-            "CEO'S 24FO MINI (un)": df_orcamento["CEO'S 24FO MINI (un)"].sum()
-        }
+        total_row = [
+            "",  # ID
+            "Total",  # Pasta
+            "",  # Rota
+            df_orcamento["CEO'S 24FO (un)"].sum(),
+            df_orcamento["CEO'S 24FO MINI (un)"].sum()
+        ]
         
-        # Adiciona a linha de total usando loc para garantir o alinhamento das colunas
-        df_orcamento = df_orcamento.append(total_row, ignore_index=True)
+        df_orcamento.loc[len(df_orcamento)] = total_row
     
     df_orcamento.set_index("ID", inplace=True)
     return df_orcamento
@@ -995,9 +992,10 @@ if uploaded_file is not None:
     # Na seção de exibição do orçamento para fusão LINK:
     st.subheader("📊 Lista de Materiais para Fusão - LINK")
     
-    if not df_tabela_pastas.empty and all(col in df_tabela_pastas.columns for col in ["Pasta", "ROTAS LINK", "Distância (m)"]):
-        df_orcamento_fusao = criar_orcamento_fusao_link_por_rota(df_tabela_pastas)
-        st.dataframe(df_orcamento_fusao)
+    if not df_tabela_pastas.empty:
+        try:
+            df_orcamento_fusao = criar_orcamento_fusao_link_por_rota(df_tabela_pastas)
+            st.dataframe(df_orcamento_fusao)
             
             st.markdown("""
             **📝 Fórmulas de Cálculo:**
@@ -1009,10 +1007,10 @@ if uploaded_file is not None:
         except Exception as e:
             st.error(f"Erro ao gerar orçamento de fusão: {str(e)}")
     else:
-        st.warning("Dados necessários não disponíveis para cálculo de materiais de fusão.")
+        st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais de fusão.")
     
     # Na seção de exibição do orçamento:
-    st.subheader("📊 Lista de Materiais para Lançamento - GPON")
+    st.subheader("📊 Lista de Materiais para Lançamento")
     
     if dados_gpon:
         df_orcamento = criar_orcamento_materiais(dados_gpon)
@@ -1029,9 +1027,11 @@ if uploaded_file is not None:
         - **Plaqueta:** CABO 2FO ÷ 120 metros
         """)
 
+
+    
     # No dashboard principal:
     if dados_gpon:
-        st.subheader("📊 Lista de Materiais para Fusão - GPON")
+        st.subheader("📊 Lista de Materiais para Fusão")
         
         df_splitters = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
         
