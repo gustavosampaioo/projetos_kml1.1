@@ -826,7 +826,7 @@ if uploaded_file is not None:
     criar_tabela_interativa_gpon(dados_gpon)
     
     # Na seção de exibição do orçamento:
-    st.subheader("📊 Lista Completa de Materiais por POP")
+    st.subheader("📊 Lista de Materiais para Lançamento")
     
     if dados_gpon:
         df_orcamento = criar_orcamento_materiais(dados_gpon)
@@ -845,7 +845,7 @@ if uploaded_file is not None:
 
     # No dashboard principal:
     if dados_gpon:
-        st.subheader("📊 Distribuição Detalhada de CTO's por Posição e Splitter")
+        st.subheader("📊 Lista de Materiais para Fusão")
         
         df_splitters = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
         
@@ -854,14 +854,13 @@ if uploaded_file is not None:
         
         st.markdown("""
         **📝 Legenda:**
-        - **CTO Posição X:** Quantidade de CTOs na posição X da sequência
-        - **Total X/Y:** Soma de CTOs para cada tipo de splitter
+        - **CTO Posição X:** Quantidade de CTOs com posição de splitter
         - **Sequência:** 
-          - Posições 1-4: Splitter 5/95
-          - Posições 5-8: Splitter 10/90
-          - Posição 9: Splitter 15/85
-          - Posição 10: Splitter 20/80
-          - Posição 11: Splitter 30/70
-          - Posição 12: Splitter 40/60
-          - Posição 13: Splitter 50/50
+          - CTO 1-4: Splitter 5/95
+          - CTO 5-8: Splitter 10/90
+          - CTO 9:   Splitter 15/85
+          - CTO 10:  Splitter 20/80
+          - CTO 11:  Splitter 30/70
+          - CTO 12:  Splitter 40/60
+          - CTO 13:  Splitter 50/50
         """)
