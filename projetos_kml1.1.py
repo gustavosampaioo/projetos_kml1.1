@@ -612,7 +612,7 @@ def criar_orcamento_materiais(dados_gpon):
                     fecho = total_cabo / 50
                     supa = total_cabo / 50
                     alca_branca = total_cabo / 25
-                    arame_espinar = total_cabo / 3500
+                    arame_espinar = total_cabo / 8000
                     fita_aco = total_cabo / 1000
                     plaqueta_identificacao = total_cabo / 120  
                     
@@ -1018,7 +1018,7 @@ if uploaded_file is not None:
         st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais de fusão.")
     
     # Na seção de exibição do orçamento:
-    st.subheader("📊 Lista de Materiais para Lançamento")
+    st.subheader("📊 Lista de Materiais para Lançamento - GPON")
     
     if dados_gpon:
         df_orcamento = criar_orcamento_materiais(dados_gpon)
@@ -1030,7 +1030,7 @@ if uploaded_file is not None:
         - **Fecho:** CABO 2FO ÷ 50 metros
         - **Supa:** CABO 2FO ÷ 50 metros  
         - **Alça Branca:** CABO 2FO ÷ 25 metros
-        - **Arame Espinar:** CABO 2FO ÷ 3.500 metros
+        - **Arame Espinar:** CABO 2FO ÷ 8.000 metros
         - **Fita de Aço:** CABO 2FO ÷ 1.000 metros
         - **Plaqueta:** CABO 2FO ÷ 120 metros
         """)
@@ -1039,7 +1039,7 @@ if uploaded_file is not None:
     
     # No dashboard principal:
     if dados_gpon:
-        st.subheader("📊 Lista de Materiais para Fusão")
+        st.subheader("📊 Lista de Materiais para Fusão - GPON")
         
         df_splitters = criar_tabela_quantitativo_ctos_splitters(dados_gpon)
         
