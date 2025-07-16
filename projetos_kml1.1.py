@@ -855,8 +855,8 @@ if uploaded_file is not None:
         
         st.markdown("""
         **📝 Legenda:**
-        - **CTO Posição X:** Quantidade de CTOs com posição de splitter
-        - **Sequência:** 
+        - Quantidade de CTOs
+        - **Sequência de Splitters:** 
           - CTO 1-4: Splitter 5/95
           - CTO 5-8: Splitter 10/90
           - CTO 9:   Splitter 15/85
