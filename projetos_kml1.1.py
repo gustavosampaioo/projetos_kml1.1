@@ -538,6 +538,77 @@ def criar_orcamento_materiais(dados_gpon):
     
     return df_orcamento
 
+def criar_orcamento_lancamento_link(dados_tabela_pastas):
+    """
+    Calcula os materiais necessários para lançamento do LINK baseado nas distâncias das rotas.
+    
+    Args:
+        dados_tabela_pastas: DataFrame com as colunas ["Pasta", "ROTAS LINK", "Distância (m)"]
+        
+    Returns:
+        DataFrame com os materiais calculados para cada pasta e totais
+    """
+    # Agrupa os dados por pasta para calcular os totais
+    df_agrupado = dados_tabela_pastas.groupby('Pasta')['Distância (m)'].sum().reset_index()
+    
+    # Lista para armazenar os dados do orçamento
+    dados_orcamento = []
+    
+    # Processa cada pasta
+    for _, row in df_agrupado.iterrows():
+        pasta = row['Pasta']
+        distancia = row['Distância (m)']
+        
+        # Cálculos dos materiais
+        cabo_12fo = distancia * 1.10  # +10% de margem
+        parafuso_olhal = max(1, round(cabo_12fo / 70))  # Mínimo 1 unidade
+        alca_branca = max(1, round(cabo_12fo / 35))     # Mínimo 1 unidade
+        plaqueta = max(1, round(cabo_12fo / 100))       # Mínimo 1 unidade
+        arame_espinar = max(1, round(cabo_12fo / 10000)) # Mínimo 1 unidade
+        
+        # Adiciona à lista de dados
+        dados_orcamento.append([
+            pasta,
+            round(cabo_12fo, 2),
+            parafuso_olhal,
+            alca_branca,
+            plaqueta,
+            arame_espinar
+        ])
+    
+    # Cria o DataFrame
+    df_orcamento = pd.DataFrame(
+        dados_orcamento,
+        columns=[
+            "Pasta",
+            "CABO 12FO (m)",
+            "Parafuso Olhal (un)",
+            "Alça Branca (un)",
+            "Plaqueta (un)",
+            "Arame Espinar (un)"
+        ]
+    )
+    
+    # Adiciona coluna de ID
+    df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
+    
+    # Adiciona linha de totais
+    df_orcamento.loc["Total"] = [
+        "",
+        "Total",
+        df_orcamento["CABO 12FO (m)"].sum(),
+        df_orcamento["Parafuso Olhal (un)"].sum(),
+        df_orcamento["Alça Branca (un)"].sum(),
+        df_orcamento["Plaqueta (un)"].sum(),
+        df_orcamento["Arame Espinar (un)"].sum()
+    ]
+    
+    # Define ID como índice
+    df_orcamento.set_index("ID", inplace=True)
+    
+    return df_orcamento
+
+
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
     # Mapeamento das posições válidas (1-13)
     MAPEAMENTO = {
@@ -840,6 +911,25 @@ if uploaded_file is not None:
     criar_dashboard_gpon(dados_gpon)
     
     criar_tabela_interativa_gpon(dados_gpon)
+
+    # Na seção de exibição do orçamento para LINK:
+    st.subheader("📊 Lista de Materiais para Lançamento - LINK")
+    
+    if not dados_tabela_pastas.empty:
+        df_orcamento_link = criar_orcamento_lancamento_link(dados_tabela_pastas)
+        st.dataframe(df_orcamento_link)
+        
+        st.markdown("""
+        **📝 Fórmulas de Cálculo:**
+        - **CABO 12FO:** Distância projetada + 10% margem
+        - **Parafuso Olhal:** CABO 12FO ÷ 70 metros (arredondado para cima)
+        - **Alça Branca:** CABO 12FO ÷ 35 metros (arredondado para cima)
+        - **Plaqueta:** CABO 12FO ÷ 100 metros (arredondado para cima)
+        - **Arame Espinar:** CABO 12FO ÷ 10.000 metros (arredondado para cima)
+        """)
+    else:
+        st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais.")
+
     
     # Na seção de exibição do orçamento:
     st.subheader("📊 Lista de Materiais para Lançamento")
@@ -859,6 +949,8 @@ if uploaded_file is not None:
         - **Plaqueta:** CABO 2FO ÷ 120 metros
         """)
 
+
+    
     # No dashboard principal:
     if dados_gpon:
         st.subheader("📊 Lista de Materiais para Fusão")
