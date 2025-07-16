@@ -850,13 +850,13 @@ if uploaded_file is not None:
         
         st.markdown("""
         **📝 Fórmulas de Cálculo:**
-        - **CABO 2FO Total:** Distância projetada + 20% margem
-        - **Fecho:** CABO 2FO Total ÷ 50 metros
-        - **Supa:** CABO 2FO Total ÷ 50 metros  
-        - **Alça Branca:** CABO 2FO Total ÷ 25 metros
-        - **Arame Espinar:** CABO 2FO Total ÷ 3.500 metros
-        - **Fita de Aço:** CABO 2FO Total ÷ 1.000 metros
-        - **Plaqueta:** CABO 2FO Total ÷ 120 metros
+        - **CABO 2FO:** Distância projetada + 20% margem
+        - **Fecho:** CABO 2FO ÷ 50 metros
+        - **Supa:** CABO 2FO ÷ 50 metros  
+        - **Alça Branca:** CABO 2FO ÷ 25 metros
+        - **Arame Espinar:** CABO 2FO ÷ 3.500 metros
+        - **Fita de Aço:** CABO 2FO ÷ 1.000 metros
+        - **Plaqueta:** CABO 2FO ÷ 120 metros
         """)
 
     # No dashboard principal:
