@@ -493,7 +493,7 @@ def criar_orcamento_materiais(dados_gpon):
                     # Adiciona os dados à lista
                     dados_orcamento.append([
                         subpasta["nome"],  # Nome do POP
-                        round(total_cabo, 2),  # CABO 2FO Total (m)
+                        round(total_cabo, 2),  # CABO 2FO (m)
                         round(fecho, 2),      # Fecho
                         round(supa, 2),       # Supa
                         round(alca_branca, 2),# Alça Branca
@@ -507,7 +507,7 @@ def criar_orcamento_materiais(dados_gpon):
         dados_orcamento,
         columns=[
             "POP",
-            "CABO 2FO Total (m)",
+            "CABO 2FO (m)",
             "Fecho (un)",
             "Supa (un)", 
             "Alça Branca (un)",
@@ -524,7 +524,7 @@ def criar_orcamento_materiais(dados_gpon):
     df_orcamento.loc["Total"] = [
         "",
         "Total",
-        df_orcamento["CABO 2FO Total (m)"].sum(),
+        df_orcamento["CABO 2FO (m)"].sum(),
         df_orcamento["Fecho (un)"].sum(),
         df_orcamento["Supa (un)"].sum(),
         df_orcamento["Alça Branca (un)"].sum(),
@@ -615,7 +615,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
         dados_tabela,
         columns=[
             "POP",
-            "Total CTO's",
+            "CTO's",
             "Splitter 5/95",
             "Splitter 10/90",
             "Splitter 15/85",
