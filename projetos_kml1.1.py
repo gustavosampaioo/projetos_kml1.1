@@ -870,7 +870,7 @@ if uploaded_file is not None:
         
         st.markdown("""
         **📝 Legenda:**
-        - Quantidade de CTOs
+        - **Quantidade de CTOs:** Total de CTOs no POP
         - **Sequência de Splitters:** 
           - CTO 1-4: Splitter 5/95
           - CTO 5-8: Splitter 10/90
@@ -879,4 +879,7 @@ if uploaded_file is not None:
           - CTO 11:  Splitter 30/70
           - CTO 12:  Splitter 40/60
           - CTO 13:  Splitter 50/50
+        - **Fita de Aço:** 1 unidade para cada 2 rotas (arredondado para cima)
+        - **Fecho:** 1 unidade para cada CTO
+        - **Tubete:** 5 unidades para cada CTO
         """)
