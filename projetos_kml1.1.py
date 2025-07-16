@@ -541,12 +541,6 @@ def criar_orcamento_materiais(dados_gpon):
 def criar_orcamento_lancamento_link_por_rota(dados_tabela_pastas):
     """
     Calcula os materiais necessários para lançamento do LINK por rota individual.
-    
-    Args:
-        dados_tabela_pastas: DataFrame com as colunas ["Pasta", "ROTAS LINK", "Distância (m)"]
-        
-    Returns:
-        DataFrame com os materiais calculados para cada rota e totais
     """
     # Lista para armazenar os dados do orçamento
     dados_orcamento = []
@@ -558,13 +552,12 @@ def criar_orcamento_lancamento_link_por_rota(dados_tabela_pastas):
         distancia = row['Distância (m)']
         
         # Cálculos dos materiais
-        cabo_12fo = distancia * 1.10  # +10% de margem
-        parafuso_olhal = max(1, round(cabo_12fo / 70))  # Mínimo 1 unidade
-        alca_branca = max(1, round(cabo_12fo / 35))     # Mínimo 1 unidade
-        plaqueta = max(1, round(cabo_12fo / 100))       # Mínimo 1 unidade
-        arame_espinar = max(1, round(cabo_12fo / 10000)) # Mínimo 1 unidade
+        cabo_12fo = distancia * 1.10
+        parafuso_olhal = max(1, round(cabo_12fo / 70))
+        alca_branca = max(1, round(cabo_12fo / 35))
+        plaqueta = max(1, round(cabo_12fo / 100))
+        arame_espinar = max(1, round(cabo_12fo / 10000))
         
-        # Adiciona à lista de dados
         dados_orcamento.append([
             pasta,
             rota,
@@ -577,38 +570,35 @@ def criar_orcamento_lancamento_link_por_rota(dados_tabela_pastas):
         ])
     
     # Cria o DataFrame
-    df_orcamento = pd.DataFrame(
-        dados_orcamento,
-        columns=[
-            "Pasta",
-            "Rota",
-            "Distância Projetada (m)",
-            "CABO 12FO (m)",
-            "Parafuso Olhal (un)",
-            "Alça Branca (un)",
-            "Plaqueta (un)",
-            "Arame Espinar (un)"
-        ]
-    )
+    columns = [
+        "Pasta", "Rota", "Distância Projetada (m)", 
+        "CABO 12FO (m)", "Parafuso Olhal (un)", 
+        "Alça Branca (un)", "Plaqueta (un)", "Arame Espinar (un)"
+    ]
+    df_orcamento = pd.DataFrame(dados_orcamento, columns=columns)
     
     # Adiciona coluna de ID
     df_orcamento.insert(0, "ID", range(1, len(df_orcamento) + 1))
     
-    # Adiciona linha de totais
-    df_orcamento.loc["Total"] = [
-        "",
-        "Total",
-        df_orcamento["Distância Projetada (m)"].sum(),
-        df_orcamento["CABO 12FO (m)"].sum(),
-        df_orcamento["Parafuso Olhal (un)"].sum(),
-        df_orcamento["Alça Branca (un)"].sum(),
-        df_orcamento["Plaqueta (un)"].sum(),
-        df_orcamento["Arame Espinar (un)"].sum()
-    ]
+    # Adiciona linha de totais (certificando-se que temos valores para todas as colunas)
+    if not df_orcamento.empty:
+        total_row = [
+            "",  # ID
+            "Total",  # Pasta
+            "",  # Rota
+            df_orcamento["Distância Projetada (m)"].sum(),
+            df_orcamento["CABO 12FO (m)"].sum(),
+            df_orcamento["Parafuso Olhal (un)"].sum(),
+            df_orcamento["Alça Branca (un)"].sum(),
+            df_orcamento["Plaqueta (un)"].sum(),
+            df_orcamento["Arame Espinar (un)"].sum()
+        ]
+        
+        # Certifica que temos o mesmo número de colunas
+        if len(total_row) == len(df_orcamento.columns):
+            df_orcamento.loc[len(df_orcamento)] = total_row
     
-    # Define ID como índice
     df_orcamento.set_index("ID", inplace=True)
-    
     return df_orcamento
 
 
@@ -919,27 +909,29 @@ if uploaded_file is not None:
     st.subheader("📊 Lista de Materiais para Lançamento - LINK (por Rota)")
     
     # Garante que temos um DataFrame válido
-    if isinstance(dados_tabela_pastas, list) and dados_tabela_pastas:
+    if isinstance(dados_tabela_pastas, list):
         df_tabela_pastas = pd.DataFrame(
             dados_tabela_pastas,
             columns=["Pasta", "ROTAS LINK", "Distância (m)"]
-        )
+        ) if dados_tabela_pastas else pd.DataFrame(columns=["Pasta", "ROTAS LINK", "Distância (m)"])
     elif not isinstance(dados_tabela_pastas, pd.DataFrame):
         df_tabela_pastas = pd.DataFrame(columns=["Pasta", "ROTAS LINK", "Distância (m)"])
     
-    # Agora podemos verificar com segurança
     if not df_tabela_pastas.empty:
-        df_orcamento_link = criar_orcamento_lancamento_link_por_rota(df_tabela_pastas)
-        st.dataframe(df_orcamento_link)
-        
-        st.markdown("""
-        **📝 Fórmulas de Cálculo:**
-        - **CABO 12FO:** Distância projetada + 10% margem
-        - **Parafuso Olhal:** CABO 12FO ÷ 70 metros (arredondado para cima, mínimo 1)
-        - **Alça Branca:** CABO 12FO ÷ 35 metros (arredondado para cima, mínimo 1)
-        - **Plaqueta:** CABO 12FO ÷ 100 metros (arredondado para cima, mínimo 1)
-        - **Arame Espinar:** CABO 12FO ÷ 10.000 metros (arredondado para cima, mínimo 1)
-        """)
+        try:
+            df_orcamento_link = criar_orcamento_lancamento_link_por_rota(df_tabela_pastas)
+            st.dataframe(df_orcamento_link)
+            
+            st.markdown("""
+            **📝 Fórmulas de Cálculo:**
+            - **CABO 12FO:** Distância projetada + 10% margem
+            - **Parafuso Olhal:** CABO 12FO ÷ 70 metros (arredondado para cima, mínimo 1)
+            - **Alça Branca:** CABO 12FO ÷ 35 metros (arredondado para cima, mínimo 1)
+            - **Plaqueta:** CABO 12FO ÷ 100 metros (arredondado para cima, mínimo 1)
+            - **Arame Espinar:** CABO 12FO ÷ 10.000 metros (arredondado para cima, mínimo 1)
+            """)
+        except Exception as e:
+            st.error(f"Erro ao gerar orçamento: {str(e)}")
     else:
         st.warning("Nenhum dado de rotas LINK disponível para cálculo de materiais.")
 
