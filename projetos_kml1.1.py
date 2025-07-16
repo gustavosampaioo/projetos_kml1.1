@@ -585,8 +585,6 @@ def criar_orcamento_fusao_link_por_rota(dados_tabela_pastas):
     df_orcamento.set_index("ID", inplace=True)
     return df_orcamento
 
-
-
 def criar_orcamento_materiais(dados_gpon):
     # Inicializa listas para armazenar dados
     dados_orcamento = []
@@ -657,9 +655,6 @@ def criar_orcamento_materiais(dados_gpon):
     df_orcamento.set_index("ID", inplace=True)
     
     return df_orcamento
-
-
-
 
 def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
     # Mapeamento das posições válidas (1-13)
