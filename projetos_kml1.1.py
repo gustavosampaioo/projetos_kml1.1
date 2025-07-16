@@ -918,8 +918,18 @@ if uploaded_file is not None:
     # Na seção de exibição do orçamento para LINK:
     st.subheader("📊 Lista de Materiais para Lançamento - LINK (por Rota)")
     
-    if not dados_tabela_pastas.empty:
-        df_orcamento_link = criar_orcamento_lancamento_link_por_rota(dados_tabela_pastas)
+    # Garante que temos um DataFrame válido
+    if isinstance(dados_tabela_pastas, list) and dados_tabela_pastas:
+        df_tabela_pastas = pd.DataFrame(
+            dados_tabela_pastas,
+            columns=["Pasta", "ROTAS LINK", "Distância (m)"]
+        )
+    elif not isinstance(dados_tabela_pastas, pd.DataFrame):
+        df_tabela_pastas = pd.DataFrame(columns=["Pasta", "ROTAS LINK", "Distância (m)"])
+    
+    # Agora podemos verificar com segurança
+    if not df_tabela_pastas.empty:
+        df_orcamento_link = criar_orcamento_lancamento_link_por_rota(df_tabela_pastas)
         st.dataframe(df_orcamento_link)
         
         st.markdown("""
