@@ -761,6 +761,84 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
     
     return df
 
+# Adicione esta função no seu código (pode ser colocada junto com as outras funções)
+def exportar_para_excel(dados):
+    """
+    Exporta todas as tabelas para um arquivo Excel com múltiplas abas.
+    """
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # Tabela LINK principal
+        if 'df_tabela_final' in dados:
+            dados['df_tabela_final'].to_excel(writer, sheet_name='LINK_Principal')
+        
+        # Tabela LINK PARCEIROS
+        if 'df_link_parceiros' in dados and not dados['df_link_parceiros'].empty:
+            dados['df_link_parceiros'].to_excel(writer, sheet_name='LINK_Parceiros')
+        
+        # Tabelas de status
+        if 'df_em_andamento' in dados and not dados['df_em_andamento'].empty:
+            dados['df_em_andamento'].to_excel(writer, sheet_name='LINK_Em_Andamento')
+        
+        if 'df_concluido' in dados and not dados['df_concluido'].empty:
+            dados['df_concluido'].to_excel(writer, sheet_name='LINK_Concluido')
+        
+        # Orçamentos LINK
+        if 'df_orcamento_link' in dados and not dados['df_orcamento_link'].empty:
+            dados['df_orcamento_link'].to_excel(writer, sheet_name='Orcamento_Lancamento')
+        
+        if 'df_orcamento_fusao' in dados and not dados['df_orcamento_fusao'].empty:
+            dados['df_orcamento_fusao'].to_excel(writer, sheet_name='Orcamento_Fusao')
+        
+        # Tabelas GPON
+        if 'df_orcamento_gpon' in dados and not dados['df_orcamento_gpon'].empty:
+            dados['df_orcamento_gpon'].to_excel(writer, sheet_name='GPON_Materiais')
+        
+        if 'df_splitters' in dados and not dados['df_splitters'].empty:
+            dados['df_splitters'].to_excel(writer, sheet_name='GPON_Splitters')
+        
+        # Dashboard GPON
+        if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
+            dados['df_dashboard_gpon'].to_excel(writer, sheet_name='GPON_Dashboard')
+    
+    output.seek(0)
+    return output
+
+# Adicione este código no final do seu bloco principal (depois de gerar todas as tabelas)
+from io import BytesIO
+from datetime import datetime
+
+# Coletar todas as tabelas em um dicionário
+dados_exportacao = {
+    'df_tabela_final': df_tabela_final,
+    'df_link_parceiros': df_link_parceiros if 'df_link_parceiros' in locals() else pd.DataFrame(),
+    'df_em_andamento': df_em_andamento if 'df_em_andamento' in locals() else pd.DataFrame(),
+    'df_concluido': df_concluido if 'df_concluido' in locals() else pd.DataFrame(),
+    'df_orcamento_link': df_orcamento_link if 'df_orcamento_link' in locals() else pd.DataFrame(),
+    'df_orcamento_fusao': df_orcamento_fusao if 'df_orcamento_fusao' in locals() else pd.DataFrame(),
+    'df_orcamento_gpon': df_orcamento if 'df_orcamento' in locals() else pd.DataFrame(),
+    'df_splitters': df_splitters if 'df_splitters' in locals() else pd.DataFrame(),
+    'df_dashboard_gpon': df_tabela if 'df_tabela' in locals() else pd.DataFrame()
+}
+
+# Botão para exportar para Excel
+if st.button('📤 Exportar para Excel'):
+    with st.spinner('Gerando arquivo Excel...'):
+        try:
+            excel_file = exportar_para_excel(dados_exportacao)
+            data_atual = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+            nome_arquivo = f"Relatorio_Fibra_Otica_{data_atual}.xlsx"
+            
+            st.success('Arquivo Excel gerado com sucesso!')
+            st.download_button(
+                label='⬇️ Baixar Arquivo Excel',
+                data=excel_file,
+                file_name=nome_arquivo,
+                mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            )
+        except Exception as e:
+            st.error(f"Erro ao gerar arquivo Excel: {str(e)}")
+
 # Configuração do aplicativo Streamlit
 st.title("Analisador de Projetos de Fibra Ótica")
 st.write("""
