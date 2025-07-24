@@ -284,9 +284,7 @@ def criar_dashboard_gpon(dados_gpon, display=True):
     }
     df_tabela = pd.concat([df_tabela, pd.DataFrame([total_row])], ignore_index=True)
     
-    if display:
-        st.write("### GPON - Análise Rotas, CTO'S, Fibra Ótica")
-        st.dataframe(df_tabela.set_index("ID"))
+
     
     return df_tabela
 
