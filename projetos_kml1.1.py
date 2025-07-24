@@ -785,17 +785,17 @@ def exportar_para_excel(dados):
         
         # Orçamentos LINK
         if 'df_orcamento_link' in dados and not dados['df_orcamento_link'].empty:
-            dados['df_orcamento_link'].to_excel(writer, sheet_name='Orcamento_Lancamento')
+            dados['df_orcamento_link'].to_excel(writer, sheet_name='Orcamento_Lancamento_Link')
         
         if 'df_orcamento_fusao' in dados and not dados['df_orcamento_fusao'].empty:
-            dados['df_orcamento_fusao'].to_excel(writer, sheet_name='Orcamento_Fusao')
+            dados['df_orcamento_fusao'].to_excel(writer, sheet_name='Orcamento_Fusao_Link')
         
         # Tabelas GPON
         if 'df_orcamento_gpon' in dados and not dados['df_orcamento_gpon'].empty:
-            dados['df_orcamento_gpon'].to_excel(writer, sheet_name='GPON_Materiais')
+            dados['df_orcamento_gpon'].to_excel(writer, sheet_name='Orcamento_Lancamento_GPON')
         
         if 'df_splitters' in dados and not dados['df_splitters'].empty:
-            dados['df_splitters'].to_excel(writer, sheet_name='GPON_Splitters')
+            dados['df_splitters'].to_excel(writer, sheet_name='Orcamento_Fusao_GPON')
         
         # Dashboard GPON
         if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
