@@ -765,6 +765,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
 def exportar_para_excel(dados):
     """
     Exporta todas as tabelas para um arquivo Excel com múltiplas abas.
+    Inclui agora a tabela GPON - Análise Rotas, CTO'S, Fibra Ótica.
     """
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -797,9 +798,74 @@ def exportar_para_excel(dados):
         if 'df_splitters' in dados and not dados['df_splitters'].empty:
             dados['df_splitters'].to_excel(writer, sheet_name='Orcamento_Fusao_GPON')
         
-        # Dashboard GPON
+        # Dashboard GPON - Análise Rotas, CTO'S, Fibra Ótica
         if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
-            dados['df_dashboard_gpon'].to_excel(writer, sheet_name='GPON_Dashboard')
+            # Criar uma cópia para não modificar o original
+            df_gpon = dados['df_dashboard_gpon'].copy()
+            
+            # Remover a linha de total se existir (para formatação personalizada)
+            if 'Total' in df_gpon.index:
+                total_row = df_gpon.loc['Total']
+                df_gpon = df_gpon.drop('Total')
+            
+            # Escrever os dados principais
+            df_gpon.to_excel(writer, sheet_name='GPON_Dashboard', startrow=1)
+            
+            # Acessar a planilha para formatação
+            workbook = writer.book
+            worksheet = writer.sheets['GPON_Dashboard']
+            
+            # Formatar cabeçalho
+            header_format = workbook.add_format({
+                'bold': True,
+                'text_wrap': True,
+                'valign': 'top',
+                'fg_color': '#4472C4',
+                'font_color': 'white',
+                'border': 1
+            })
+            
+            # Escrever título
+            title_format = workbook.add_format({
+                'bold': True,
+                'font_size': 14,
+                'align': 'center'
+            })
+            
+            worksheet.write(0, 0, "GPON - Análise Rotas, CTO'S, Fibra Ótica", title_format)
+            
+            # Aplicar formatação ao cabeçalho
+            for col_num, value in enumerate(df_gpon.columns.values):
+                worksheet.write(1, col_num, value, header_format)
+            
+            # Formatar números
+            num_format = workbook.add_format({'num_format': '#,##0'})
+            fibra_format = workbook.add_format({'num_format': '#,##0.00'})
+            
+            # Aplicar formatos às colunas numéricas
+            worksheet.set_column('A:A', 10)  # ID
+            worksheet.set_column('B:B', 30)  # POP
+            worksheet.set_column('C:E', 15, num_format)  # Rotas, CTO'S (números inteiros)
+            worksheet.set_column('F:F', 20, fibra_format)  # Fibra Ótica (metros com decimais)
+            
+            # Adicionar linha de total se existir
+            if 'Total' in locals():
+                worksheet.write(len(df_gpon)+2, 0, "Total", header_format)
+                for col_num, value in enumerate(total_row):
+                    if col_num > 0:  # Pular a coluna do ID
+                        if col_num in [2, 3]:  # Colunas de Rotas e CTO'S
+                            worksheet.write(len(df_gpon)+2, col_num, value, num_format)
+                        elif col_num == 4:  # Coluna de Fibra Ótica
+                            worksheet.write(len(df_gpon)+2, col_num, value, fibra_format)
+                        else:
+                            worksheet.write(len(df_gpon)+2, col_num, value)
+            
+            # Adicionar bordas à tabela
+            border_format = workbook.add_format({'border': 1})
+            worksheet.conditional_format(
+                1, 0, len(df_gpon)+1, len(df_gpon.columns)-1,
+                {'type': 'no_errors', 'format': border_format}
+            )
     
     output.seek(0)
     return output
