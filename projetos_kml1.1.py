@@ -258,40 +258,35 @@ def criar_dashboard_gpon(dados_gpon, display=True):
                 if "linestrings" in subpasta:
                     soma_distancia = sum(distancia for _, distancia in subpasta["linestrings"])
                 
-                dados_tabela.append([
-                    subpasta["nome"],
-                    total_rotas,
-                    total_placemarks,
-                    round(soma_distancia, 2)  # Arredonda para 2 casas decimais
-                ])
+                dados_tabela.append({
+                    "ID": len(dados_tabela) + 1,
+                    "POP": subpasta["nome"],
+                    "Rotas": total_rotas,
+                    "CTO'S": total_placemarks,
+                    "Fibra Ótica (metros)": round(soma_distancia, 2)
+                })
     
     if not dados_tabela:
         if display:
             st.warning("Nenhum dado GPON disponível para análise.")
         return None
     
-    # Cria o DataFrame com as colunas corretas
-    df_tabela = pd.DataFrame(
-        dados_tabela,
-        columns=["POP", "Rotas", "CTO'S", "Fibra Ótica (metros)"]
-    )
+    # Cria o DataFrame
+    df_tabela = pd.DataFrame(dados_tabela)
     
-    # Adiciona ID como índice (não como coluna adicional)
-    df_tabela.index = range(1, len(df_tabela) + 1)
-    df_tabela.index.name = "ID"
-    
-    # Adiciona linha de total (com formatação consistente)
-    total_fibra = df_tabela["Fibra Ótica (metros)"].sum()
-    df_tabela.loc["Total"] = [
-        "Total",
-        df_tabela["Rotas"].sum(),
-        df_tabela["CTO'S"].sum(),
-        round(total_fibra, 2)
-    ]
+    # Adiciona linha de total
+    total_row = {
+        "ID": "",
+        "POP": "Total",
+        "Rotas": df_tabela["Rotas"].sum(),
+        "CTO'S": df_tabela["CTO'S"].sum(),
+        "Fibra Ótica (metros)": round(df_tabela["Fibra Ótica (metros)"].sum(), 2)
+    }
+    df_tabela = pd.concat([df_tabela, pd.DataFrame([total_row])], ignore_index=True)
     
     if display:
         st.write("### GPON - Análise Rotas, CTO'S, Fibra Ótica")
-        st.dataframe(df_tabela)
+        st.dataframe(df_tabela.set_index("ID"))
     
     return df_tabela
 
@@ -807,20 +802,24 @@ def exportar_para_excel(dados):
         # 3. TABELA GPON PRINCIPAL (NOVO - A QUE VOCÊ QUER)
         # ==============================================================
         if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
-            # Cria cópia para não modificar o original
             df_gpon = dados['df_dashboard_gpon'].copy()
             
-            # Remove o nome do índice para evitar duplicação
-            df_gpon.index.name = None
+            # Remove o índice para evitar duplicações
+            df_gpon.reset_index(drop=True, inplace=True)
             
-            # Exporta para Excel
-            df_gpon.to_excel(writer, sheet_name='GPON_Dashboard', startrow=1)
+            # Exporta para Excel mantendo a ordem das colunas
+            df_gpon.to_excel(
+                writer,
+                sheet_name='GPON_Dashboard',
+                index=False,  # Não incluir o índice padrão
+                startrow=1
+            )
             
             # Formatação profissional
             workbook = writer.book
             worksheet = writer.sheets['GPON_Dashboard']
             
-            # Formata cabeçalho
+            # Formatações
             header_format = workbook.add_format({
                 'bold': True,
                 'fg_color': '#4472C4',
@@ -829,17 +828,31 @@ def exportar_para_excel(dados):
                 'align': 'center'
             })
             
-            # Formata números
             num_format = workbook.add_format({'num_format': '#,##0'})
             fibra_format = workbook.add_format({'num_format': '#,##0.00'})
+            total_format = workbook.add_format({
+                'bold': True,
+                'top': 1,
+                'num_format': '#,##0.00'
+            })
             
             # Aplica formatação
-            worksheet.set_column('A:A', 5)  # ID
+            worksheet.set_column('A:A', 5)   # ID
             worksheet.set_column('B:B', 25)  # POP
             worksheet.set_column('C:D', 10, num_format)  # Rotas, CTO'S
             worksheet.set_column('E:E', 18, fibra_format)  # Fibra Ótica
             
-            # Adiciona título
+            # Formata linha de total
+            last_row = len(df_gpon)
+            for col_num, col_name in enumerate(df_gpon.columns):
+                if col_name in ["Rotas", "CTO'S"]:
+                    worksheet.write(last_row, col_num, df_gpon.iloc[-1, col_num], num_format)
+                elif col_name == "Fibra Ótica (metros)":
+                    worksheet.write(last_row, col_num, df_gpon.iloc[-1, col_num], total_format)
+                else:
+                    worksheet.write(last_row, col_num, df_gpon.iloc[-1, col_num])
+            
+            # Título
             title_format = workbook.add_format({
                 'bold': True,
                 'font_size': 14,
@@ -849,7 +862,7 @@ def exportar_para_excel(dados):
                                 "GPON - Análise Rotas, CTO'S, Fibra Ótica", 
                                 title_format)
             
-            # Formata cabeçalhos
+            # Cabeçalhos
             for col_num, value in enumerate(df_gpon.columns.values):
                 worksheet.write(1, col_num, value, header_format)
         
