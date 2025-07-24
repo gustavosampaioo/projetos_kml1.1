@@ -777,11 +777,6 @@ def exportar_para_excel(dados):
         # ==============================================================
         # 1. TABELAS LINK (EXISTENTES)
         # ==============================================================
-    output = BytesIO()
-    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-        # ==============================================================
-        # 1. TABELAS LINK (EXISTENTES)
-        # ==============================================================
         if 'df_tabela_final' in dados:
             dados['df_tabela_final'].reset_index(drop=True).to_excel(
                 writer, 
@@ -808,36 +803,45 @@ def exportar_para_excel(dados):
             )
         
         if 'df_concluido' in dados and not dados['df_concluido'].empty:
-            dados['df_concluido'].reset_index(drop=True).to_excel(
+            df_concluido = dados['df_concluido'].copy()
+            if 'ID' in df_concluido.columns:
+                df_concluido = df_concluido.drop(columns=['ID'])
+            df_concluido.reset_index(drop=True).to_excel(
                 writer, 
                 sheet_name='LINK_Concluido',
                 index=False
             )
-        
+
         # ==============================================================
         # 2. ORÇAMENTOS LINK (EXISTENTES)
         # ==============================================================
         if 'df_orcamento_link' in dados and not dados['df_orcamento_link'].empty:
-            dados['df_orcamento_link'].reset_index(drop=True).to_excel(
+            df_orcamento_link = dados['df_orcamento_link'].copy()
+            if 'ID' in df_orcamento_link.columns:
+                df_orcamento_link = df_orcamento_link.drop(columns=['ID'])
+            df_orcamento_link.reset_index(drop=True).to_excel(
                 writer, 
                 sheet_name='Orcamento_Lancamento_Link',
                 index=False
             )
         
         if 'df_orcamento_fusao' in dados and not dados['df_orcamento_fusao'].empty:
-            dados['df_orcamento_fusao'].reset_index(drop=True).to_excel(
+            df_orcamento_fusao = dados['df_orcamento_fusao'].copy()
+            if 'ID' in df_orcamento_fusao.columns:
+                df_orcamento_fusao = df_orcamento_fusao.drop(columns=['ID'])
+            df_orcamento_fusao.reset_index(drop=True).to_excel(
                 writer, 
                 sheet_name='Orcamento_Fusao_Link',
                 index=False
             )
-        
+
         # ==============================================================
         # 3. TABELA GPON PRINCIPAL
         # ==============================================================
         if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
             df_gpon = dados['df_dashboard_gpon'].copy()
-            
-            # Remove o índice para evitar duplicações
+            if 'ID' in df_gpon.columns:
+                df_gpon = df_gpon.drop(columns=['ID'])
             df_gpon.reset_index(drop=True, inplace=True)
             
             # Exporta para Excel mantendo a ordem das colunas
@@ -898,19 +902,25 @@ def exportar_para_excel(dados):
             # Cabeçalhos
             for col_num, value in enumerate(df_gpon.columns.values):
                 worksheet.write(1, col_num, value, header_format)
-        
+
         # ==============================================================
         # 4. OUTRAS TABELAS GPON (EXISTENTES)
         # ==============================================================
         if 'df_orcamento_gpon' in dados and not dados['df_orcamento_gpon'].empty:
-            dados['df_orcamento_gpon'].reset_index(drop=True).to_excel(
+            df_orcamento_gpon = dados['df_orcamento_gpon'].copy()
+            if 'ID' in df_orcamento_gpon.columns:
+                df_orcamento_gpon = df_orcamento_gpon.drop(columns=['ID'])
+            df_orcamento_gpon.reset_index(drop=True).to_excel(
                 writer, 
                 sheet_name='Orcamento_Lancamento_GPON',
                 index=False
             )
         
         if 'df_splitters' in dados and not dados['df_splitters'].empty:
-            dados['df_splitters'].reset_index(drop=True).to_excel(
+            df_splitters = dados['df_splitters'].copy()
+            if 'ID' in df_splitters.columns:
+                df_splitters = df_splitters.drop(columns=['ID'])
+            df_splitters.reset_index(drop=True).to_excel(
                 writer, 
                 sheet_name='Orcamento_Fusao_GPON',
                 index=False
