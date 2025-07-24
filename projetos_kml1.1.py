@@ -285,7 +285,8 @@ def criar_dashboard_gpon(dados_gpon):
     st.write("### GPON - Análise Rotas, CTO'S, Fibra Ótica")
     st.dataframe(df_tabela)
 
-
+    # Retornar o DataFrame para exportação
+    return df_tabela
 
 def criar_tabela_interativa_gpon(dados_gpon):
     if not dados_gpon:
