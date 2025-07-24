@@ -1224,8 +1224,6 @@ dados_exportacao = {}
 # 1. Primeiro criar o dashboard GPON e capturar o DataFrame retornado
 # Processar o dashboard GPON (sem exibir duas vezes)
 if 'dados_gpon' in locals() and dados_gpon:
-    # Exibe a tabela apenas uma vez no dashboard
-    df_dashboard = criar_dashboard_gpon(dados_gpon, display=True)
     
     # Para exportação, pegamos os dados sem exibir novamente
     if df_dashboard is not None:
