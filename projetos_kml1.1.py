@@ -770,7 +770,7 @@ def criar_tabela_quantitativo_ctos_splitters(dados_gpon):
 def exportar_para_excel(dados):
     """
     Exporta todas as tabelas para um arquivo Excel com múltiplas abas.
-    Inclui agora corretamente a tabela GPON - Análise Rotas, CTO'S, Fibra Ótica.
+    Garante que os índices não sejam duplicados nas tabelas exportadas.
     """
     output = BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
@@ -778,28 +778,53 @@ def exportar_para_excel(dados):
         # 1. TABELAS LINK (EXISTENTES)
         # ==============================================================
         if 'df_tabela_final' in dados:
-            dados['df_tabela_final'].to_excel(writer, sheet_name='LINK_Principal')
+            dados['df_tabela_final'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='LINK_Principal',
+                index=False
+            )
         
         if 'df_link_parceiros' in dados and not dados['df_link_parceiros'].empty:
-            dados['df_link_parceiros'].to_excel(writer, sheet_name='LINK_Parceiros')
+            dados['df_link_parceiros'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='LINK_Parceiros',
+                index=False
+            )
         
         if 'df_em_andamento' in dados and not dados['df_em_andamento'].empty:
-            dados['df_em_andamento'].to_excel(writer, sheet_name='LINK_Em_Andamento')
+            # Remove o índice e exporta sem a coluna ID duplicada
+            dados['df_em_andamento'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='LINK_Em_Andamento',
+                index=False
+            )
         
         if 'df_concluido' in dados and not dados['df_concluido'].empty:
-            dados['df_concluido'].to_excel(writer, sheet_name='LINK_Concluido')
+            dados['df_concluido'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='LINK_Concluido',
+                index=False
+            )
         
         # ==============================================================
         # 2. ORÇAMENTOS LINK (EXISTENTES)
         # ==============================================================
         if 'df_orcamento_link' in dados and not dados['df_orcamento_link'].empty:
-            dados['df_orcamento_link'].to_excel(writer, sheet_name='Orcamento_Lancamento_Link')
+            dados['df_orcamento_link'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='Orcamento_Lancamento_Link',
+                index=False
+            )
         
         if 'df_orcamento_fusao' in dados and not dados['df_orcamento_fusao'].empty:
-            dados['df_orcamento_fusao'].to_excel(writer, sheet_name='Orcamento_Fusao_Link')
+            dados['df_orcamento_fusao'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='Orcamento_Fusao_Link',
+                index=False
+            )
         
         # ==============================================================
-        # 3. TABELA GPON PRINCIPAL (NOVO - A QUE VOCÊ QUER)
+        # 3. TABELA GPON PRINCIPAL
         # ==============================================================
         if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
             df_gpon = dados['df_dashboard_gpon'].copy()
@@ -811,7 +836,7 @@ def exportar_para_excel(dados):
             df_gpon.to_excel(
                 writer,
                 sheet_name='GPON_Dashboard',
-                index=False,  # Não incluir o índice padrão
+                index=False,
                 startrow=1
             )
             
@@ -870,10 +895,18 @@ def exportar_para_excel(dados):
         # 4. OUTRAS TABELAS GPON (EXISTENTES)
         # ==============================================================
         if 'df_orcamento_gpon' in dados and not dados['df_orcamento_gpon'].empty:
-            dados['df_orcamento_gpon'].to_excel(writer, sheet_name='Orcamento_Lancamento_GPON')
+            dados['df_orcamento_gpon'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='Orcamento_Lancamento_GPON',
+                index=False
+            )
         
         if 'df_splitters' in dados and not dados['df_splitters'].empty:
-            dados['df_splitters'].to_excel(writer, sheet_name='Orcamento_Fusao_GPON')
+            dados['df_splitters'].reset_index(drop=True).to_excel(
+                writer, 
+                sheet_name='Orcamento_Fusao_GPON',
+                index=False
+            )
     
     output.seek(0)
     return output
