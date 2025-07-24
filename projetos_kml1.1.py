@@ -267,7 +267,7 @@ def criar_dashboard_gpon(dados_gpon):
     
     df_tabela = pd.DataFrame(
         dados_tabela,
-        columns=["POP", "Rotas", "CTO'S", "Fibra Ótica (metros)"]
+        columns=["ID", "POP", "Rotas", "CTO'S", "Fibra Ótica (metros)"]
     )
     
     df_tabela.insert(0, "ID", range(1, len(df_tabela) + 1))
@@ -284,6 +284,9 @@ def criar_dashboard_gpon(dados_gpon):
     
     st.write("### GPON - Análise Rotas, CTO'S, Fibra Ótica")
     st.dataframe(df_tabela)
+
+    # Retornar o DataFrame para exportação
+    return df_tabela
 
 def criar_tabela_interativa_gpon(dados_gpon):
     if not dados_gpon:
@@ -1175,11 +1178,15 @@ if uploaded_file is not None:
 from io import BytesIO
 from datetime import datetime
 
-
 # Coletar todas as tabelas em um dicionário, verificando se cada uma existe
 dados_exportacao = {}
 
-# Verifica e adiciona cada DataFrame se existir
+# 1. Primeiro criar o dashboard GPON e capturar o DataFrame retornado
+if 'dados_gpon' in locals() and dados_gpon:
+    df_dashboard_gpon = criar_dashboard_gpon(dados_gpon)  # Modifique a função para retornar o DataFrame
+    dados_exportacao['df_dashboard_gpon'] = df_dashboard_gpon
+
+# 2. Depois adicionar as outras tabelas
 if 'df_tabela_final' in locals():
     dados_exportacao['df_tabela_final'] = df_tabela_final
 
@@ -1204,10 +1211,7 @@ if 'df_orcamento' in locals():
 if 'df_splitters' in locals():
     dados_exportacao['df_splitters'] = df_splitters
 
-if 'df_tabela' in locals():
-    dados_exportacao['df_dashboard_gpon'] = df_tabela
-
-# Botão para exportar para Excel - só mostra se houver dados para exportar
+# 3. Botão para exportar para Excel
 if dados_exportacao:
     if st.button('📤 Exportar para Excel'):
         with st.spinner('Gerando arquivo Excel...'):
