@@ -262,7 +262,7 @@ def criar_dashboard_gpon(dados_gpon, display=True):
                     subpasta["nome"],
                     total_rotas,
                     total_placemarks,
-                    soma_distancia
+                    round(soma_distancia, 2)  # Arredonda para 2 casas decimais
                 ])
     
     if not dados_tabela:
@@ -270,22 +270,23 @@ def criar_dashboard_gpon(dados_gpon, display=True):
             st.warning("Nenhum dado GPON disponível para análise.")
         return None
     
-    # Cria o DataFrame sem a coluna ID inicialmente
+    # Cria o DataFrame com as colunas corretas
     df_tabela = pd.DataFrame(
         dados_tabela,
         columns=["POP", "Rotas", "CTO'S", "Fibra Ótica (metros)"]
     )
     
-    # Adiciona a coluna ID como índice
+    # Adiciona ID como índice (não como coluna adicional)
     df_tabela.index = range(1, len(df_tabela) + 1)
     df_tabela.index.name = "ID"
     
-    # Adiciona linha de total
+    # Adiciona linha de total (com formatação consistente)
+    total_fibra = df_tabela["Fibra Ótica (metros)"].sum()
     df_tabela.loc["Total"] = [
         "Total",
         df_tabela["Rotas"].sum(),
         df_tabela["CTO'S"].sum(),
-        df_tabela["Fibra Ótica (metros)"].sum()
+        round(total_fibra, 2)
     ]
     
     if display:
@@ -806,17 +807,20 @@ def exportar_para_excel(dados):
         # 3. TABELA GPON PRINCIPAL (NOVO - A QUE VOCÊ QUER)
         # ==============================================================
         if 'df_dashboard_gpon' in dados and not dados['df_dashboard_gpon'].empty:
-            # Criar cópia para não modificar o original
+            # Cria cópia para não modificar o original
             df_gpon = dados['df_dashboard_gpon'].copy()
             
-            # Escrever os dados
+            # Remove o nome do índice para evitar duplicação
+            df_gpon.index.name = None
+            
+            # Exporta para Excel
             df_gpon.to_excel(writer, sheet_name='GPON_Dashboard', startrow=1)
             
-            # Configurações adicionais de formatação
+            # Formatação profissional
             workbook = writer.book
             worksheet = writer.sheets['GPON_Dashboard']
             
-            # Formatar cabeçalho
+            # Formata cabeçalho
             header_format = workbook.add_format({
                 'bold': True,
                 'fg_color': '#4472C4',
@@ -825,43 +829,27 @@ def exportar_para_excel(dados):
                 'align': 'center'
             })
             
-            # Formatar células de dados
-            data_format = workbook.add_format({
-                'border': 1,
-                'align': 'center'
-            })
+            # Formata números
+            num_format = workbook.add_format({'num_format': '#,##0'})
+            fibra_format = workbook.add_format({'num_format': '#,##0.00'})
             
-            # Formatar números
-            num_format = workbook.add_format({
-                'num_format': '#,##0',
-                'border': 1,
-                'align': 'center'
-            })
+            # Aplica formatação
+            worksheet.set_column('A:A', 5)  # ID
+            worksheet.set_column('B:B', 25)  # POP
+            worksheet.set_column('C:D', 10, num_format)  # Rotas, CTO'S
+            worksheet.set_column('E:E', 18, fibra_format)  # Fibra Ótica
             
-            fibra_format = workbook.add_format({
-                'num_format': '#,##0.00',
-                'border': 1,
-                'align': 'center'
-            })
-            
-            # Aplicar formatos
-            worksheet.set_column('A:A', 10, data_format)  # ID
-            worksheet.set_column('B:B', 30, data_format)  # POP
-            worksheet.set_column('C:D', 15, num_format)   # Rotas, CTO'S
-            worksheet.set_column('E:E', 20, fibra_format)  # Fibra Ótica
-            
-            # Escrever título
+            # Adiciona título
             title_format = workbook.add_format({
                 'bold': True,
                 'font_size': 14,
                 'align': 'center'
             })
-            
             worksheet.merge_range(0, 0, 0, 4, 
                                 "GPON - Análise Rotas, CTO'S, Fibra Ótica", 
                                 title_format)
             
-            # Formatar cabeçalhos das colunas
+            # Formata cabeçalhos
             for col_num, value in enumerate(df_gpon.columns.values):
                 worksheet.write(1, col_num, value, header_format)
         
