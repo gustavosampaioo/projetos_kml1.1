@@ -804,62 +804,7 @@ def exportar_para_excel(dados):
     output.seek(0)
     return output
 
-# Adicione este código no final do seu bloco principal (depois de gerar todas as tabelas)
-from io import BytesIO
-from datetime import datetime
 
-
-# Coletar todas as tabelas em um dicionário, verificando se cada uma existe
-dados_exportacao = {}
-
-# Verifica e adiciona cada DataFrame se existir
-if 'df_tabela_final' in locals():
-    dados_exportacao['df_tabela_final'] = df_tabela_final
-
-if 'df_link_parceiros' in locals():
-    dados_exportacao['df_link_parceiros'] = df_link_parceiros
-
-if 'df_em_andamento' in locals():
-    dados_exportacao['df_em_andamento'] = df_em_andamento
-
-if 'df_concluido' in locals():
-    dados_exportacao['df_concluido'] = df_concluido
-
-if 'df_orcamento_link' in locals():
-    dados_exportacao['df_orcamento_link'] = df_orcamento_link
-
-if 'df_orcamento_fusao' in locals():
-    dados_exportacao['df_orcamento_fusao'] = df_orcamento_fusao
-
-if 'df_orcamento' in locals():
-    dados_exportacao['df_orcamento_gpon'] = df_orcamento
-
-if 'df_splitters' in locals():
-    dados_exportacao['df_splitters'] = df_splitters
-
-if 'df_tabela' in locals():
-    dados_exportacao['df_dashboard_gpon'] = df_tabela
-
-# Botão para exportar para Excel - só mostra se houver dados para exportar
-if dados_exportacao:
-    if st.button('📤 Exportar para Excel'):
-        with st.spinner('Gerando arquivo Excel...'):
-            try:
-                excel_file = exportar_para_excel(dados_exportacao)
-                data_atual = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-                nome_arquivo = f"Relatorio_Fibra_Otica_{data_atual}.xlsx"
-                
-                st.success('Arquivo Excel gerado com sucesso!')
-                st.download_button(
-                    label='⬇️ Baixar Arquivo Excel',
-                    data=excel_file,
-                    file_name=nome_arquivo,
-                    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-                )
-            except Exception as e:
-                st.error(f"Erro ao gerar arquivo Excel: {str(e)}")
-else:
-    st.warning("Nenhum dado disponível para exportação.")
 
 # Configuração do aplicativo Streamlit
 st.title("Analisador de Projetos de Fibra Ótica")
@@ -1161,3 +1106,60 @@ if uploaded_file is not None:
         - **Fecho:** 1 unidade para cada CTO
         - **Tubete:** 5 unidades para cada CTO
         """)
+
+# Adicione este código no final do seu bloco principal (depois de gerar todas as tabelas)
+from io import BytesIO
+from datetime import datetime
+
+
+# Coletar todas as tabelas em um dicionário, verificando se cada uma existe
+dados_exportacao = {}
+
+# Verifica e adiciona cada DataFrame se existir
+if 'df_tabela_final' in locals():
+    dados_exportacao['df_tabela_final'] = df_tabela_final
+
+if 'df_link_parceiros' in locals():
+    dados_exportacao['df_link_parceiros'] = df_link_parceiros
+
+if 'df_em_andamento' in locals():
+    dados_exportacao['df_em_andamento'] = df_em_andamento
+
+if 'df_concluido' in locals():
+    dados_exportacao['df_concluido'] = df_concluido
+
+if 'df_orcamento_link' in locals():
+    dados_exportacao['df_orcamento_link'] = df_orcamento_link
+
+if 'df_orcamento_fusao' in locals():
+    dados_exportacao['df_orcamento_fusao'] = df_orcamento_fusao
+
+if 'df_orcamento' in locals():
+    dados_exportacao['df_orcamento_gpon'] = df_orcamento
+
+if 'df_splitters' in locals():
+    dados_exportacao['df_splitters'] = df_splitters
+
+if 'df_tabela' in locals():
+    dados_exportacao['df_dashboard_gpon'] = df_tabela
+
+# Botão para exportar para Excel - só mostra se houver dados para exportar
+if dados_exportacao:
+    if st.button('📤 Exportar para Excel'):
+        with st.spinner('Gerando arquivo Excel...'):
+            try:
+                excel_file = exportar_para_excel(dados_exportacao)
+                data_atual = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+                nome_arquivo = f"Relatorio_Fibra_Otica_{data_atual}.xlsx"
+                
+                st.success('Arquivo Excel gerado com sucesso!')
+                st.download_button(
+                    label='⬇️ Baixar Arquivo Excel',
+                    data=excel_file,
+                    file_name=nome_arquivo,
+                    mime='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                )
+            except Exception as e:
+                st.error(f"Erro ao gerar arquivo Excel: {str(e)}")
+else:
+    st.warning("Nenhum dado disponível para exportação.")
