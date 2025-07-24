@@ -258,35 +258,45 @@ def criar_dashboard_gpon(dados_gpon):
                 if "linestrings" in subpasta:
                     soma_distancia = sum(distancia for _, distancia in subpasta["linestrings"])
                 
+                # Adiciona os dados à lista - agora incluindo o ID automaticamente
                 dados_tabela.append([
+                    len(dados_tabela) + 1,  # ID automático
                     subpasta["nome"],
                     total_rotas,
                     total_placemarks,
                     soma_distancia
                 ])
     
-    df_tabela = pd.DataFrame(
-        dados_tabela,
-        columns=["ID", "POP", "Rotas", "CTO'S", "Fibra Ótica (metros)"]
-    )
+    # Verifica se há dados antes de criar o DataFrame
+    if not dados_tabela:
+        st.warning("Nenhum dado GPON disponível para análise.")
+        return None
     
-    df_tabela.insert(0, "ID", range(1, len(df_tabela) + 1))
+    try:
+        # Cria o DataFrame com as colunas corretas
+        df_tabela = pd.DataFrame(
+            dados_tabela,
+            columns=["ID", "POP", "Rotas", "CTO'S", "Fibra Ótica (metros)"]
+        )
+        
+        # Adiciona linha de total
+        df_tabela.loc["Total"] = [
+            "",
+            "Total",
+            df_tabela["Rotas"].sum(),
+            df_tabela["CTO'S"].sum(),
+            df_tabela["Fibra Ótica (metros)"].sum()
+        ]
+        
+        # Exibe no Streamlit
+        st.write("### GPON - Análise Rotas, CTO'S, Fibra Ótica")
+        st.dataframe(df_tabela)
+        
+        return df_tabela
     
-    df_tabela.loc["Total"] = [
-        "",
-        "Total",
-        df_tabela["Rotas"].sum(),
-        df_tabela["CTO'S"].sum(),
-        df_tabela["Fibra Ótica (metros)"].sum()
-    ]
-    
-    df_tabela.set_index("ID", inplace=True)
-    
-    st.write("### GPON - Análise Rotas, CTO'S, Fibra Ótica")
-    st.dataframe(df_tabela)
-
-    # Retornar o DataFrame para exportação
-    return df_tabela
+    except Exception as e:
+        st.error(f"Erro ao criar tabela GPON: {str(e)}")
+        return None
 
 def criar_tabela_interativa_gpon(dados_gpon):
     if not dados_gpon:
@@ -1182,11 +1192,13 @@ from datetime import datetime
 dados_exportacao = {}
 
 # 1. Primeiro criar o dashboard GPON e capturar o DataFrame retornado
+# Processar o dashboard GPON primeiro
 if 'dados_gpon' in locals() and dados_gpon:
-    df_dashboard_gpon = criar_dashboard_gpon(dados_gpon)  # Modifique a função para retornar o DataFrame
-    dados_exportacao['df_dashboard_gpon'] = df_dashboard_gpon
+    df_dashboard = criar_dashboard_gpon(dados_gpon)
+    if df_dashboard is not None:
+        dados_exportacao['df_dashboard_gpon'] = df_dashboard
 
-# 2. Depois adicionar as outras tabelas
+# Adicionar outras tabelas (mantenha o resto do seu código igual)
 if 'df_tabela_final' in locals():
     dados_exportacao['df_tabela_final'] = df_tabela_final
 
