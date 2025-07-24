@@ -777,6 +777,11 @@ def exportar_para_excel(dados):
         # ==============================================================
         # 1. TABELAS LINK (EXISTENTES)
         # ==============================================================
+    output = BytesIO()
+    with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
+        # ==============================================================
+        # 1. TABELAS LINK (EXISTENTES)
+        # ==============================================================
         if 'df_tabela_final' in dados:
             dados['df_tabela_final'].reset_index(drop=True).to_excel(
                 writer, 
@@ -792,8 +797,11 @@ def exportar_para_excel(dados):
             )
         
         if 'df_em_andamento' in dados and not dados['df_em_andamento'].empty:
-            # Remove o índice e exporta sem a coluna ID duplicada
-            dados['df_em_andamento'].reset_index(drop=True).to_excel(
+            # Remove o índice e exporta sem a coluna ID
+            df_em_andamento = dados['df_em_andamento'].copy()
+            if 'ID' in df_em_andamento.columns:
+                df_em_andamento = df_em_andamento.drop(columns=['ID'])
+            df_em_andamento.reset_index(drop=True).to_excel(
                 writer, 
                 sheet_name='LINK_Em_Andamento',
                 index=False
